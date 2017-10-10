@@ -1,0 +1,186 @@
+// Copyright 2016-2017 Cisco Systems Inc
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
+import UIKit
+
+import SparkSDK
+import PushKit
+import UserNotifications
+var SparkSDK: Spark?
+
+@UIApplicationMain
+class AppDelegate: UIResponder, UIApplicationDelegate, PKPushRegistryDelegate {
+
+    var window: UIWindow?
+    
+    var rootController: MainViewController?
+
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
+        
+        self.window = UIWindow(frame: UIScreen.main.bounds);
+        if self.rootController == nil {
+            self.rootController = MainViewController()
+        }
+        self.window?.rootViewController = rootController
+        self.window?.makeKeyAndVisible()
+
+        if(User.loadUserFromLocal()){
+            if(User.CurrentUser.loginType == .User){
+                let SparkAuthenticator = OAuthAuthenticator(clientId: Constants.ClientId, clientSecret: Constants.ClientSecret, scope: Constants.Scope, redirectUri: Constants.RedirectUrl)
+                SparkSDK = Spark(authenticator: SparkAuthenticator)
+            }else if(User.CurrentUser.loginType == .Guest){
+                let jwtStr = User.CurrentUser.jwtString
+                let jwtAuthStrategy = JWTAuthenticator()
+                if !jwtAuthStrategy.authorized {
+                    jwtAuthStrategy.authorizedWith(jwt: jwtStr!)
+                }
+                if jwtAuthStrategy.authorized == true {
+                    SparkSDK = Spark(authenticator: jwtAuthStrategy)
+                }
+            }
+        }
+        
+        let pr = PKPushRegistry(queue: DispatchQueue.main)
+        pr.delegate = self
+        pr.desiredPushTypes = [PKPushType.voIP]
+        UNUserNotificationCenter.current().requestAuthorization(options:[.alert, .sound, .badge]) { (granted: Bool, error: Error?) in
+            if (error != nil) {
+                print("Failed to request authorization")
+                return
+            }
+            if granted {
+                DispatchQueue.main.async {
+                    application.registerForRemoteNotifications()
+                }
+            } else {
+                print("The user refused the push notification")
+            }
+        }
+        
+        return true
+    }
+
+    func applicationWillResignActive(_ application: UIApplication) {
+        print("applicationWillResignActive")
+        // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
+        // Use this method to pause ongoing tasks, disable timers, and invalidate graphics rendering callbacks. Games should use this method to pause the game.
+        
+        /* Save User Info on Local */
+        if(User.CurrentUser.loginType != .None){
+            User.CurrentUser.saveLocalRooms()
+            User.CurrentUser.saveGroupsToLocal()
+        }
+    }
+
+    func applicationDidEnterBackground(_ application: UIApplication) {
+        print("applicationDidEnterBackground")
+        // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
+        // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+    }
+
+    func applicationWillEnterForeground(_ application: UIApplication) {
+        print("applicationWillEnterForeground")
+        // Called as part of the transition from the background to the active state; here you can undo many of the changes made on entering the background.
+    }
+
+    func applicationDidBecomeActive(_ application: UIApplication) {
+        print("applicationDidBecomeActive")
+        // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+    }
+
+    func applicationWillTerminate(_ application: UIApplication) {
+        // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+    }
+
+    // Get device token for message push notification
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        let hex = deviceToken.map( {String(format: "%02x", $0) }).joined(separator: "")
+        /* saving message noti certificate date on local UserDefualt */
+        UserDefaults.standard.set(hex, forKey: "com.cisco.spark-ios-sdk.Buddies.data.device_msg_token")
+        if(User.CurrentUser.loginType != .None){
+            self.rootController?.registerSparkWebhook(completionHandler: nil)
+        }
+    }
+    
+    // Get device token for voip push notification
+    func pushRegistry(_ registry: PKPushRegistry, didUpdate credentials: PKPushCredentials, forType type: PKPushType) {
+        let hex = credentials.token.map( {String(format: "%02x", $0) }).joined(separator: "")
+        /* saving voip noti certificate date on local UserDefualt */
+        UserDefaults.standard.set(hex, forKey: "com.cisco.spark-ios-sdk.Buddies.data.device_voip_token")
+        if(User.CurrentUser.loginType != .None){
+            self.rootController?.registerSparkWebhook(completionHandler: nil)
+        }
+    }
+    
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        print("Failed to register to APNs: \(error)")
+    }
+    
+    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+
+        /* first receive message notification */
+        let dict = userInfo["aps"] as? Dictionary<String, AnyObject>
+        let alert = dict?["alert"] as? Dictionary<String, AnyObject>
+        let email = alert?["body"] as? String
+        let title = alert?["title"] as? String
+        
+        
+        let state = UIApplication.shared.applicationState
+        if state != .active {
+            if(User.loadUserFromLocal()){
+                if let localGroup = User.CurrentUser.getSingleGroupWithContactEmail(email: email!){
+                    localGroup.unReadedCount += 1
+                }
+            }
+        }else{
+            if(User.CurrentUser.loginType != .None){
+                if let localGroup = User.CurrentUser.getSingleGroupWithContactEmail(email: email!){
+                    localGroup.unReadedCount += 1
+                }
+            }
+        }
+
+        if(title == "New Message"){
+            if let home = self.rootController, let email = email {
+                if email != User.CurrentUser.email{
+                    home.receviMessageNotification(fromEmail: email)
+                }
+            }
+        }
+
+    }
+    
+    func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, forType type: PKPushType) {
+        
+        /* first receive voip/call notification */
+        let dict = payload.dictionaryPayload["aps"] as? Dictionary<String, AnyObject>
+        let alert = dict?["alert"] as? Dictionary<String, AnyObject>
+        let id = alert?["body"] as? String
+        if let home = self.rootController, let id = id {
+            home.receiveIncomingCall(from: id) { err in
+                if let err = err {
+                    print(err)
+                }
+            }
+        }
+    }
+    
+}
+
