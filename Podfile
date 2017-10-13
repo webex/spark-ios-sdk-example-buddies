@@ -4,7 +4,7 @@ platform :ios, '9.0'
 use_frameworks!
 
 target 'Buddies' do
-    pod 'SparkSDK', :git => 'https://github.com/ciscospark/spark-ios-sdk.git', :branch => 'master'
+    pod 'SparkSDK'
     pod 'FontAwesome.swift'
     pod 'Cartography'
     pod 'SDWebImage'
