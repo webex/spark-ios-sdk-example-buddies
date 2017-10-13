@@ -112,7 +112,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     }
     
     private func dialCall(){
-        SparkSDK?.phone.dial(self.callee.email, option:  MediaOption.mediaAndScreenShare(media: (self.localVideoView!, self.remoteVideoView!), screenShare: self.screenShareView!)) { result in
+        SparkSDK?.phone.dial(self.callee.email, option:  MediaOption.audioVideoScreenShare(video: (self.localVideoView!, self.remoteVideoView!), screenShare: self.screenShareView!)) { result in
             KTActivityIndicator.singleton.hide()
             switch result {
             case .success(let call):
@@ -156,7 +156,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         self.timer?.invalidate()
         self.timer = nil
         self.startTime = nil
-        call.answer(option:   MediaOption.mediaAndScreenShare(media: (local : (self.localVideoView)!,remote : (self.remoteVideoView)!), screenShare: self.screenShareView!)) { error in
+        call.answer(option:   MediaOption.audioVideoScreenShare(video: (local :self.localVideoView!,remote : self.remoteVideoView!), screenShare: self.screenShareView)) { error in
             if let error = error{
                 self.disMissVC(error)
             }else{

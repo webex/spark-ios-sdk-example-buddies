@@ -465,8 +465,13 @@ extension MainViewController: CXProviderDelegate {
                     }
                 }
             }
-            else {
+            else if let presentedViewController = self.presentedViewController,presentedViewController == self.callViewController {
                 self.callViewController?.answerNewIncomingCall(call: call, callKitAction: action)
+            }
+            else {
+                self.present(self.callViewController!, animated: true) {
+                    self.callViewController?.answerNewIncomingCall(call: call, callKitAction: action)
+                }
             }
         }
     }
