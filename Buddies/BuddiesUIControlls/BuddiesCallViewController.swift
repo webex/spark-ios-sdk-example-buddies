@@ -91,7 +91,11 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         self.view.backgroundColor = UIColor.MKColor.BlueGrey.P700
         self.setUpSubViews()
     }
-    
+    override func viewWillAppear(_ animated: Bool) {
+        /* removed by call View controller manage will case broblems 1.5.0*/
+//        NotificationCenter.default.addObserver(self, selector: #selector(messageNotiReceived(noti:)), name: NSNotification.Name(rawValue: MessageReceptionNotificaton), object: nil)
+    }
+
     // MARK: - SparkSDK: beginVideoCall
     func beginVideoCall(){
         KTActivityIndicator.singleton.show(title: "Connecting..")
@@ -316,6 +320,45 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
             })
         }
     }
+
+    /* removed by call View controller manage will case broblems 1.5.0*/
+    // MARK: - SparkSDK: handle receiving message in a call
+//    func messageNotiReceived(noti: Notification){
+//        let paramDict = noti.object as! Dictionary<String, String>
+//        let fromEmail = paramDict["from"]
+//
+//        /* blocked by notification only contains email, but not a room id*/
+//        if let localGroup = User.CurrentUser.getSingleGroupWithContactEmail(email: fromEmail!){
+//            if let localRoom = User.CurrentUser.findLocalRoomWithId(localGroupId: localGroup.groupId!){
+//                self.requestRecivedMessages(localRoom)
+//            }
+//        }
+//    }
+//    func requestRecivedMessages(_ roomModel: RoomModel){
+//        SparkSDK?.messages.list(roomId: (roomModel.roomId), max: 1, queue: nil, completionHandler: { (response: ServiceResponse<[Message]>) in
+//            switch response.result {
+//            case .success(let value):
+//                print(value)
+//                for message in value{
+//                    let msgModel = MessageModel(message: message)
+//                    msgModel?.messageState = MessageState.received
+//                    msgModel?.localGroupId = roomModel.localGroupId
+//                    if(msgModel?.text == nil){
+//                        msgModel?.text = ""
+//                    }
+//                    self.messageList.append(msgModel!)
+//                }
+//                self.messageTableView?.reloadData()
+//                if(self.messageList.count > 0){
+//                    let indexPath = IndexPath(row: self.messageList.count-1, section: 0)
+//                    self.messageTableView?.scrollToRow(at: indexPath, at: .bottom, animated: true)
+//                }
+//                break
+//            case .failure:
+//                break
+//            }
+//        })
+//    }
     
     
     // MARK: - UI Imeplementation

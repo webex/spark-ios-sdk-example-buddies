@@ -5,7 +5,7 @@ use_frameworks!
 
 target 'Buddies' do
     pod 'SparkSDK'
-    pod 'FontAwesome.swift'
+    pod 'FontAwesome.swift','~> 1.2.0'
     pod 'Cartography'
     pod 'SDWebImage'
     pod 'NVActivityIndicatorView'
