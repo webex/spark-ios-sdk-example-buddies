@@ -29,5 +29,5 @@ Here are the steps to setup Xcode project using [CocoaPods](http://cocoapods.org
     pod install
     ```
 # Kitchensink
-Here is another demo app-"Kitchensink", which is more focus on simply implementing codes and functionalities
+Here is another demo app-"Kitchensink", which is more focus on simply implementing codes and functionalities.
 [GitHub-Kitchensink](https://github.com/ciscospark/spark-ios-sdk-example) 
