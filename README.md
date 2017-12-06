@@ -28,3 +28,6 @@ Here are the steps to setup Xcode project using [CocoaPods](http://cocoapods.org
     ```bash
     pod install
     ```
+##
+Here is another demo app-"Kitchensink" which is more focus on implementing codes and functionalities
+[GitHubSource](https://github.com/ciscospark/spark-ios-sdk-example-buddies) 
