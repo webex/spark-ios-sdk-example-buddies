@@ -35,9 +35,6 @@ class BuddiesInputView: UIView {
     private let textViewWidth = Int((Constants.Size.screenWidth - 140))
     private let textViewHeight = 36
     
-    
-    
-    
     init(frame: CGRect , tableView: UITableView){
         self.tableView = tableView
         super.init(frame: frame)
@@ -47,7 +44,6 @@ class BuddiesInputView: UIView {
     }
     
     @objc private func plusBtnClicked(){
-
         let inputViewHeight = Constants.Size.screenWidth > 375 ? 226 : 216
         let imageInputView = UIView(frame: CGRect(0,0,Int(Constants.Size.screenWidth),inputViewHeight))
             imageInputView.backgroundColor = UIColor.gray
@@ -123,9 +119,10 @@ class BuddiesInputView: UIView {
         let keyboardRectangle = keyboardFrame.cgRectValue
         let keyboardHeight = keyboardRectangle.height
         let currentTableInsetBottom = self.tableView.contentInset.bottom
+        let inputEdgeHeight:CGFloat = Constants.Size.navHeight > 64 ? 34: 0
         UIView.animate(withDuration: 0.25) {
-            self.tableView.transform = CGAffineTransform.init(translationX: 0, y: -keyboardHeight)
-            self.transform = CGAffineTransform(translationX: 0, y: -keyboardHeight)
+            self.tableView.transform = CGAffineTransform.init(translationX: 0, y: -keyboardHeight+inputEdgeHeight)
+            self.transform = CGAffineTransform(translationX: 0, y: -keyboardHeight+inputEdgeHeight)
             self.tableView.contentInset = UIEdgeInsetsMake(keyboardHeight, 0, currentTableInsetBottom, 0)
         }
     }

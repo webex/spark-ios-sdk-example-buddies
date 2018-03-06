@@ -34,7 +34,21 @@ class Constants {
         static let screenFrame = UIScreen.main.bounds
         static let screenWidth = UIScreen.main.bounds.width
         static let screenHeight = UIScreen.main.bounds.height
-        static let navHeight = 64
+        static let statusBarHeight: CGFloat = UIApplication.shared.statusBarFrame.height
+        static let navHeight: CGFloat = {
+            if statusBarHeight > 20{
+                return 88.0
+            }else{
+                return 64.0
+            }
+        }()
+        static let tabHeight: CGFloat = {
+            if statusBarHeight > 20{
+                return 83.0
+            }else{
+                return 49.0
+            }
+        }()
     }
     class Webhook {
         

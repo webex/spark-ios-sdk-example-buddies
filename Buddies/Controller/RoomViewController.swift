@@ -33,7 +33,7 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
     private var maskView: UIView?
     private var roomMeberList: [Membership] = []
     private var messageList: [MessageModel] = []
-    private let messageTableViewHeight = (Constants.Size.screenHeight-64-40)
+    private let messageTableViewHeight = Constants.Size.navHeight > 64 ? (Constants.Size.screenHeight-Constants.Size.navHeight-74) : (Constants.Size.screenHeight-Constants.Size.navHeight-40)
     private var tableTap: UIGestureRecognizer?
     private var topIndicator: UIActivityIndicatorView?
     private var navigationTitleLabel: UILabel?
