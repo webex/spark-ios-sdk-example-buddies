@@ -9,9 +9,9 @@ Buddies is a Demo Application that shows how to build a production App with Spar
 <img src="https://github.com/ciscospark/spark-ios-sdk-example-buddies/blob/develop/ScreenShots/S_1.jpg" width="20%" height="20%">
 </ul>
 
-1. ScreenShot-1: Main Messaging Page.
-1. ScreenShot-2: Main Application Page, contains buddies and groups.
-1. ScreenShot-3: Create group/Add buddy Page.
+1. ScreenShot-1: Main messaging page.
+1. ScreenShot-2: Application page, contains buddies and groups.
+1. ScreenShot-3: Create group/add buddy Page.
 
 ## How to install
 You can download our Demo App from TestFlight.
