@@ -117,7 +117,7 @@ class Group: NSObject,NSCoding {
     // MARK: private Methods
     private func updateGroupId()->String{
         if(self.groupMembers.count == 1){
-            return self.groupMembers[0].email.md5
+            return self.groupMembers[0].email
         }
         var gourpIdStr = ""
         self.groupMembers.sort { (contact1, contact2) -> Bool in

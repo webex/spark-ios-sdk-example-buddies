@@ -39,14 +39,6 @@ class RoomListViewController: BaseViewController,UITableViewDelegate,UITableView
         self.updateNavigationItems()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        NotificationCenter.default.addObserver(self, selector: #selector(messageNotiReceived(noti:)), name: NSNotification.Name(rawValue: MessageReceptionNotificaton), object: nil)
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        NotificationCenter.default.removeObserver(self)
-    }
-    
     // MARK: - SparkSDK: listing rooms / delete rooms
     func sparkListRooms(){
         SparkSDK?.rooms.list(completionHandler: { (response: ServiceResponse<[Room]>) in

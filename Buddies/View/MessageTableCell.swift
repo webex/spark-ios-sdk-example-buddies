@@ -29,7 +29,7 @@ let messageCellTextWidth = (Constants.Size.screenWidth - CGFloat(avatorHeight))/
 class MessageTableCell: UITableViewCell {
     
     // MARK: - UI variables
-    dynamic private var messageModel: MessageModel
+    dynamic private var message: Message
     
     private var avatorImageView: UIImageView?
     
@@ -51,14 +51,23 @@ class MessageTableCell: UITableViewCell {
         super.awakeFromNib()
         // Initialization code
     }
-    
     // MARK: - UI Iplementation
-    init(messageModel: MessageModel){
-        self.messageModel = messageModel
+    init(message: Message){
+        self.message = message
         self.messageSize = CGSize.zero
-        self.isUser = (messageModel.personId == User.CurrentUser.id)
+        self.isUser = (message.personId == User.CurrentUser.id) || (message.personEmail?.toString() == User.CurrentUser.email)
         super.init(style: .default, reuseIdentifier: "MessageListTableCell")
-        self.messageSize = self.getContentSize(text: (messageModel.text)!)
+        self.messageSize = self.getContentSize(text: (message.text)!)
+        self.selectionStyle = .none
+        self.backgroundColor = UIColor.clear
+        self.setUpMessageCellSubViews()
+    }
+    
+    public func updateTableCell(message: Message){
+        self.message = message
+        self.messageSize = CGSize.zero
+        self.isUser = (message.personId == User.CurrentUser.id) || (message.personEmail?.toString() == User.CurrentUser.email)
+        self.messageSize = self.getContentSize(text: (message.text)!)
         self.selectionStyle = .none
         self.backgroundColor = UIColor.clear
         self.setUpMessageCellSubViews()
@@ -72,12 +81,11 @@ class MessageTableCell: UITableViewCell {
             }else{
                 self.avatorImageView = UIImageView(frame: CGRect(x:Int(self.mirrorPosition(5, CGFloat(avatorHeight))), y: 10, width: avatorHeight, height: avatorHeight))
             }
-            
             self.avatorImageView?.layer.cornerRadius = CGFloat(avatorHeight/2)
             self.avatorImageView?.layer.masksToBounds = true
             self.avatorImageView?.layer.borderColor = UIColor.white.cgColor
             self.avatorImageView?.layer.borderWidth = 2.0
-            if(self.messageModel.personId == User.CurrentUser.id || self.messageModel.personEmail?.toString() == User.CurrentUser.email){
+            if(self.message.personId == User.CurrentUser.id || self.message.personEmail?.toString() == User.CurrentUser.email){
                 if let url = User.CurrentUser.avatorUrl {
                     self.avatorImageView?.sd_setImage(with: URL(string: url), placeholderImage: User.CurrentUser.placeholder)
                 }
@@ -85,9 +93,9 @@ class MessageTableCell: UITableViewCell {
                     self.avatorImageView?.image = User.CurrentUser.placeholder
                 }
             }else{
-                let personEmail = self.messageModel.personEmail?.toString()
-                let groupModel = User.CurrentUser[self.messageModel.localGroupId!]
-                let contact = groupModel?.getMemberWithEmail(email: personEmail!)
+                let personEmail = self.message.personEmail
+                let groupModel = User.CurrentUser[self.message.localGroupId!]
+                let contact = groupModel?.getMemberWithEmail(email: (personEmail?.toString())!)
                 if let url = contact?.avatorUrl {
                     self.avatorImageView?.sd_setImage(with: URL(string: url), placeholderImage: contact?.placeholder)
                 }
@@ -97,14 +105,10 @@ class MessageTableCell: UITableViewCell {
             }
             self.addSubview(self.avatorImageView!)
         }
-        if self.messageModel.files != nil{
-            if self.messageModel.text?.length != 0{
-                self.setUpFileAndContentView()
-            }else{
-                self.setUpFileView(beginY: 0.0)
-            }
+        if self.message.files != nil{
+            self.setUpFileAndContentView()
         }else{
-            if self.messageModel.text != nil{
+            if self.message.text != nil{
                 self.setUpContentlabel()
             }
         }
@@ -112,7 +116,6 @@ class MessageTableCell: UITableViewCell {
     
     @objc private func setUpContentlabel(){
         if(self.contentLabel == nil){
-            
             if(self.messageShapeLayer == nil){
                 self.messageShapeLayer = CAShapeLayer()
                 self.messageShapeLayer?.path = self.getMessageShapePath()
@@ -131,12 +134,12 @@ class MessageTableCell: UITableViewCell {
                 self.contentLabel = UILabel(frame: CGRect(x: CGFloat(xPosition) , y:CGFloat(avatorHeight/2 - 10), width: messageCellTextWidth, height: messageSize.height+20))
             }
             
-            self.contentLabel?.text = self.messageModel.text
+            self.contentLabel?.text = self.message.text
             self.contentLabel?.font = Constants.Font.InputBox.Input
             self.contentLabel?.textColor = UIColor.white
             self.contentLabel?.numberOfLines = 0
             self.addSubview(self.contentLabel!)
-            if(self.messageModel.messageState == MessageState.willSend){
+            if(self.message.messageState == MessageState.willSend){
                 self.sendMessage()
             }else{
                 self.updateMessageState()
@@ -147,18 +150,32 @@ class MessageTableCell: UITableViewCell {
     @objc private func setUpFileView(beginY: CGFloat){
         if(self.fileViewArray == nil){
             self.fileViewArray = NSMutableArray()
-            let imageViewWidth = Constants.Size.screenWidth/2
-            let imageViewHeight = Constants.Size.screenWidth/4*3
+            var totalY : CGFloat = 0
             do {
-                
-                for index in 0..<(messageModel.files?.count)! {
+                for index in 0..<(message.files?.count)! {
+                    guard let file = self.message.files?[index] else{
+                        break
+                    }
+                    var imageViewWidth : CGFloat = 0
+                    var imageViewHeight : CGFloat = 0
+                    var fileLabelY: CGFloat = 0
+                    var fileLableHeight: CGFloat = 0
+                    if file.fileType == FileType.Image{
+                        imageViewWidth = Constants.Size.screenWidth/2
+                        imageViewHeight = Constants.Size.screenWidth/4*3
+                        fileLabelY = imageViewHeight/4*3
+                        fileLableHeight = imageViewHeight/4
+                    }else{
+                        imageViewWidth = Constants.Size.screenWidth/2
+                        imageViewHeight = Constants.Size.screenWidth/16*3
+                        fileLableHeight = imageViewHeight
+                    }
                     let imageView = UIImageView()
                     imageView.layer.masksToBounds = true
                     imageView.contentMode = .scaleAspectFill
                     var x1 = CGFloat(avatorHeight + 15)
-                    
-                    let y1 = beginY + CGFloat(avatorHeight/2 - 10) + CGFloat(index) * imageViewHeight + 10*(CGFloat(index))
-                    
+                    let y1 = beginY + CGFloat(avatorHeight/2 - 10) + totalY + 10*(CGFloat(index))
+                    totalY += imageViewHeight
                     if(isUser){
                         x1 = self.mirrorPosition(x1, imageViewWidth)
                     }
@@ -167,45 +184,34 @@ class MessageTableCell: UITableViewCell {
                     imageView.backgroundColor = UIColor.white
                     self.addSubview(imageView)
                     
-                    let imageRquestStr = (self.messageModel.files?[index])!
-                    if(messageModel.imageDataDict != nil && (messageModel.imageDataDict?.keys.contains(imageRquestStr))!){
-                        let data = messageModel.imageDataDict?[imageRquestStr]
-                        imageView.image = UIImage(data: data!)
+                    if file.fileType == FileType.Image{
+                        if file.image != nil{
+                            if let localPath = file.image?.localFileUrl{
+                                imageView.image = UIImage(contentsOfFile: localPath)
+                            }else{
+                                SparkSDK?.messages?.downLoadThumbNail(roomId: self.message.roomId!, file: file, completionHandler: { (file: FileObjectModel,state: FileDownLoadState) in
+                                    if state == .DownloadSuccess{
+                                        imageView.image = UIImage(contentsOfFile: (file.image?.localFileUrl!)!)
+                                    }
+                                })
+                            }
+                        }
+                    }
+                    let fileNameLabel = UILabel()
+                    fileNameLabel.frame = CGRect(x: 0, y: fileLabelY, width: imageViewWidth, height: fileLableHeight)
+                    fileNameLabel.text = self.message.fileNames?[index]
+                    fileNameLabel.textAlignment = .center
+                    fileNameLabel.numberOfLines = 3
+                    imageView.addSubview(fileNameLabel)
+                    
+                    if file.fileType == FileType.Image{
+                        fileNameLabel.backgroundColor = UIColor(displayP3Red: 0, green: 0, blue: 0, alpha: 0.5)
+                        fileNameLabel.textColor = UIColor.white
+                        fileNameLabel.font = Constants.Font.InputBox.Input
                     }else{
-                        let indicator = UIActivityIndicatorView(activityIndicatorStyle: .gray)
-                        indicator.center = CGPoint(imageViewWidth/2,imageViewHeight/2)
-                        imageView.addSubview(indicator)
-                        indicator.startAnimating()
-                        
-                        var request = URLRequest(url: URL(string: imageRquestStr)!)
-                        let session = URLSession.shared
-                        request.httpMethod = "GET" //set http method as POST
-                        
-                        var authenticator = SparkSDK?.authenticator
-                        authenticator = SparkSDK?.authenticator as! OAuthAuthenticator
-                        authenticator?.accessToken(completionHandler: { (token) in
-                            
-                            let tokenValue = "Bearer \(token!)"
-                            request.addValue(tokenValue, forHTTPHeaderField: "Authorization")
-                            let task = session.dataTask(with: request as URLRequest, completionHandler: { data, response, error in
-                                
-                                guard error == nil else {
-                                    return
-                                }
-                                guard let data = data else {
-                                    return
-                                }
-                                if(self.messageModel.imageDataDict == nil){
-                                    self.messageModel.imageDataDict = Dictionary()
-                                }
-                                self.messageModel.imageDataDict?[imageRquestStr] = data
-                                DispatchQueue.main.async {
-                                    indicator.stopAnimating()
-                                    imageView.image = UIImage(data: data)
-                                }
-                            })
-                            task.resume()
-                        })
+                        fileNameLabel.backgroundColor = UIColor.lightGray
+                        fileNameLabel.textColor = UIColor.black
+                        fileNameLabel.font = Constants.Font.NavigationBar.Title
                     }
                 }
             }
@@ -213,14 +219,28 @@ class MessageTableCell: UITableViewCell {
     }
     
     @objc private func setUpFileAndContentView(){
-        self.setUpContentlabel()
-        let beginY = CGFloat(avatorHeight/2 - 10) + messageSize.height+10
-        self.setUpFileView(beginY: beginY)
+        if self.message.text?.length == 0{
+            messageSize.width = Constants.Size.screenWidth/2
+            messageSize.height = -10
+            let beginY = CGFloat(avatorHeight/2 - 10) + messageSize.height+10
+            self.setUpFileView(beginY: beginY)
+            if(self.message.messageState == MessageState.willSend){
+                self.sendMessage()
+            }else{
+                self.updateMessageState()
+            }
+        }else{
+            self.setUpContentlabel()
+            let beginY = CGFloat(avatorHeight/2 - 10) + messageSize.height+10
+            self.setUpFileView(beginY: beginY)
+        }
+
     }
     
     // MARK: SparkSDK: send message 
     @objc private func sendMessage(){
-        if(self.messageModel.messageState == MessageState.willSend || self.messageModel.messageState == MessageState.sendFailed){
+        if(self.message.messageState == MessageState.willSend || self.message.messageState == MessageState.sendFailed){
+            self.message.messageState = MessageState.sending
             if(self.messageIndicator == nil){
                 self.messageIndicator = UIActivityIndicatorView(activityIndicatorStyle: .gray)
                 if(!isUser){
@@ -229,50 +249,48 @@ class MessageTableCell: UITableViewCell {
                     let positionX = self.mirrorPosition(CGFloat(avatorHeight + 20) + messageSize.width+10+10, 0)
                     self.messageIndicator?.center = CGPoint(x: positionX, y: CGFloat(avatorHeight/2)+10.0)
                 }
-                
                 self.messageIndicator?.hidesWhenStopped = true
             }
             self.optionBtn?.removeFromSuperview()
             self.addSubview(self.messageIndicator!)
             self.messageIndicator?.startAnimating()
             
-            
-            if(self.messageModel.roomId == nil || self.messageModel.roomId?.length == 0){
+            if(self.message.roomId == nil || self.message.roomId?.length == 0){
                 DispatchQueue.global().async {
-                    SparkSDK?.messages.post(personEmail: self.messageModel.toPersonEmail!, text: (self.messageModel.text!), completionHandler: { (response: ServiceResponse<Message>) in
+                    SparkSDK?.messages?.post(email: (self.message.toPersonEmail?.toString())!, text: (self.message.text!),completionHandler: { (response: ServiceResponse<MessageModel>) in
                         self.messageIndicator?.stopAnimating()
                         switch response.result {
                         case .success(let value):
-                            let roomModel = User.CurrentUser.findLocalRoomWithId(localGroupId: self.messageModel.localGroupId!)
+                            let roomModel = User.CurrentUser.findLocalRoomWithId(localGroupId: self.message.localGroupId!)
                             roomModel?.roomId = value.roomId!
                             User.CurrentUser.saveLocalRooms()
-                            self.messageModel.messageId = response.result.data?.id
-                            self.messageModel.messageState = MessageState.idle
+                            self.message.messageId = value.id
+                            self.message.messageState = MessageState.idle
                             break
                         case let .failure(error):
                             print(error)
-                            self.messageModel.messageState = MessageState.sendFailed
+                            self.message.messageState = MessageState.sendFailed
                             self.updateMessageState()
                             break
                         }
                     })
                 }
-                
             }else{
                 DispatchQueue.global().async {
-                    SparkSDK?.messages.post(roomId: (self.messageModel.roomId)!, text: (self.messageModel.text!), completionHandler: { (response: ServiceResponse<Message>) in
-                        self.messageIndicator?.stopAnimating()
-                        switch response.result {
-                        case .success:
-                            self.messageModel.messageId = response.result.data?.id
-                            self.messageModel.messageState = MessageState.idle
-                            break
-                        case let .failure(error):
-                            print(error)
-                            self.messageModel.messageState = MessageState.sendFailed
-                            self.updateMessageState()
-                            break
-                        }
+                    
+                    SparkSDK?.messages?.post(roomId: self.message.roomId!, text: (self.message.text!), mentions: self.message.mentionList, files: self.message.files, completionHandler: { (response: ServiceResponse<MessageModel>) in
+                            self.messageIndicator?.stopAnimating()
+                            switch response.result {
+                            case .success(let value):
+                                self.message.messageId = value.id
+                                self.message.messageState = MessageState.idle
+                                break
+                            case let .failure(error):
+                                print(error)
+                                self.message.messageState = MessageState.sendFailed
+                                self.updateMessageState()
+                                break
+                            }
                     })
                 }
             }
@@ -280,7 +298,7 @@ class MessageTableCell: UITableViewCell {
     }
     
     private func updateMessageState(){
-        if(self.messageModel.messageState == MessageState.sendFailed){
+        if(self.message.messageState == MessageState.sendFailed){
             if(self.optionBtn == nil){
                 self.optionBtn = UIButton(type: .custom)
                 self.optionBtn?.frame = CGRect(0,0,20,20)
@@ -300,17 +318,18 @@ class MessageTableCell: UITableViewCell {
     }
     
     // MARK: Get Cell Total Height
-    public static func getCellHeight(text: String , imageCount: Int) -> CGFloat{
-        if(imageCount > 0 && text.length != 0){
+    public static func getCellHeight(text: String , imageCount: Int , fileCount: Int) -> CGFloat{
+        let totalCount = imageCount + fileCount
+        if(totalCount > 0 && text.length != 0){
             let textHeight = text.calculateSringHeight(width: Double(CGFloat(messageCellTextWidth)), font: Constants.Font.InputBox.Input)
             if(textHeight+25 > CGFloat(avatorHeight)){
-                return textHeight + 45 + (Constants.Size.screenWidth/4*3)*CGFloat(imageCount) + 10*CGFloat(imageCount)
+                return textHeight + 45 + (Constants.Size.screenWidth/4*3)*CGFloat(imageCount) + 10*CGFloat(totalCount) + (Constants.Size.screenWidth/16*3)*CGFloat(fileCount)
             }else{
-                return CGFloat(avatorHeight) + 15 + (Constants.Size.screenWidth/4*3)*CGFloat(imageCount) + 10*CGFloat(imageCount)
+                return CGFloat(avatorHeight) + 15 + (Constants.Size.screenWidth/4*3)*CGFloat(imageCount) + 10*CGFloat(totalCount) + (Constants.Size.screenWidth/16*3)*CGFloat(fileCount)
             }
         }
-        if(imageCount > 0){
-            return 15 + (Constants.Size.screenWidth/4*3)*CGFloat(imageCount) + 10*CGFloat(imageCount)
+        if(totalCount > 0){
+            return 15 + (Constants.Size.screenWidth/4*3)*CGFloat(imageCount) + 10*CGFloat(totalCount) + (Constants.Size.screenWidth/16*3)*CGFloat(fileCount)
         }
         let textHeight = text.calculateSringHeight(width: Double(CGFloat(messageCellTextWidth)), font: Constants.Font.InputBox.Input)
         if(textHeight+25 > CGFloat(avatorHeight)){

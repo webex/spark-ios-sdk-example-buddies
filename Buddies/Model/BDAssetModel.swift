@@ -8,12 +8,14 @@
 
 import UIKit
 import Photos
-
 class BDAssetModel: NSObject {
     var isSelected: Bool = false
     var asset: PHAsset
+    var image: UIImage?
+    var localFileUrl : String?
     
     init(asset: PHAsset){
         self.asset = asset
+        super.init()
     }
 }

@@ -23,6 +23,7 @@ import SparkSDK
 
 let peopleTableCellHeight = 80
 let membershipTableCellHeight = 60
+let mentionTableCellHeight = 50
 
 class PeopleListTableCell: UITableViewCell {
 
@@ -153,6 +154,7 @@ class PeopleListTableCell: UITableViewCell {
             self.seletionImageView?.removeFromSuperview()
         }
     }
+    
     // MARK: - Room Membership Table Implementation
     init(membershipModel: Membership){
         super.init(style: .default, reuseIdentifier: "PeopleListTableCell")
@@ -249,6 +251,50 @@ class PeopleListTableCell: UITableViewCell {
                 
             })
         }
+    }
+    
+    // MARK: - Mention Table cell Implementation
+    init(mentionContact: Contact){
+        super.init(style: .default, reuseIdentifier: "PeopleListTableCell")
+        self.contactModel = mentionContact
+        self.setUpMentionPeopleCellSubViews()
+    }
+    
+    func setUpMentionPeopleCellSubViews(){
+        if(self.backView != nil){
+            self.backView?.removeFromSuperview()
+        }
+        let viewWidth = Constants.Size.screenWidth - 30
+        let viewHeight = mentionTableCellHeight
+        self.backView = UIView(frame: CGRect(0, 0, Int(viewWidth),viewHeight))
+        self.backView?.backgroundColor = UIColor.white
+        self.addSubview(self.backView!)
+        
+        let avatorImageView = UIImageView(frame: CGRect(x: 10, y: 5, width: 40, height: 40))
+        if let avatorUrl = contactModel?.avatorUrl{
+            avatorImageView.sd_setImage(with: URL(string: avatorUrl), placeholderImage: contactModel?.placeholder)
+        }else{
+            avatorImageView.image = contactModel?.placeholder
+        }
+        
+        avatorImageView.setCorner(20)
+        avatorImageView.layer.borderColor =  Constants.Color.Theme.Background.cgColor
+        avatorImageView.layer.borderWidth = 1.0
+        self.backView?.addSubview(avatorImageView)
+        
+        let nameLabel = UILabel(frame: CGRect(x: 85, y: 10, width: viewWidth-50, height: 30))
+        nameLabel.text = contactModel?.name
+        nameLabel.textAlignment = .left
+        nameLabel.textColor = Constants.Color.Theme.DarkControl
+        nameLabel.font = Constants.Font.Home.Title
+        self.backView?.addSubview(nameLabel)
+        
+        let line = CALayer()
+        line.frame = CGRect(x: 15.0, y: Double(mentionTableCellHeight)-0.5, width: Double(viewWidth-15), height: 0.5)
+        line.backgroundColor = Constants.Color.Theme.MediumControl.cgColor
+        self.backView?.layer.addSublayer(line)
+                
+        self.updateSelection()
     }
     
     // MARK: - other functions

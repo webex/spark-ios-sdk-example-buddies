@@ -34,7 +34,7 @@ class User: Contact {
     
     static var CurrentUser = User(id: "", name: "qucui", email: "qucui@cisco.com")
 
-    private var groups: [GroupModel] = []
+    private var groups: [Group] = []
     public var rooms: [RoomModel] = []
 
     var loginType: UserLoginType = .None
@@ -199,29 +199,29 @@ class User: Contact {
         }
     }
     
-    subscript(index: Int) -> GroupModel? {
+    subscript(index: Int) -> Group? {
         return self.groups.safeObjectAtIndex(index)
     }
     
-    subscript(groupId: String) -> GroupModel? {
+    subscript(groupId: String) -> Group? {
         return self.groups.filter({$0.groupId == groupId}).first
     }
     
-    func getSingleGroupWithContactId(contactId: String)->GroupModel?{
+    func getSingleGroupWithContactId(contactId: String)->Group?{
          return self.getSingleMemberGroup().filter({$0[0]?.id == contactId}).first
     }
     
-    func getSingleGroupWithContactEmail(email: String)->GroupModel?{
+    func getSingleGroupWithContactEmail(email: String)->Group?{
         return self.getSingleMemberGroup().filter({$0[0]?.email == email}).first
     }
     
 
-    func addNewGroup(newGroup: GroupModel){
+    func addNewGroup(newGroup: Group){
         self.groups.append(newGroup)
     }
     
     func addNewContactAsGroup(contact: Contact) {
-        let newGroup = GroupModel(contact: contact)
+        let newGroup = Group(contact: contact)
         self.groups.append(newGroup)
     }
     
@@ -233,7 +233,7 @@ class User: Contact {
         self.groups.removeAll()
     }
     
-    func getSingleMemberGroup()->[GroupModel]{
+    func getSingleMemberGroup()->[Group]{
         return self.groups.filter({$0.groupType == GroupType.singleMember})
     }
     
@@ -243,7 +243,7 @@ class User: Contact {
         if(FileManager.default.fileExists(atPath: groupListFilePath)){
             do{
                 let roomListData = try Data(contentsOf: URL(fileURLWithPath: groupListFilePath))
-                self.groups = NSKeyedUnarchiver.unarchiveObject(with: roomListData) as! [GroupModel]
+                self.groups = NSKeyedUnarchiver.unarchiveObject(with: roomListData) as! [Group]
             }catch{
                 print("ReadRoomlistFile Failed")
             }

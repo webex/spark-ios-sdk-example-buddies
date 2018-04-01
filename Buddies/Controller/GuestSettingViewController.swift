@@ -449,7 +449,7 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
             let contact = group[0]!
             let callVC = BuddiesCallViewController(callee: contact)
             self.present(callVC, animated: true) {
-                callVC.beginVideoCall()
+                callVC.beginCall(isVideo: true)
             }
         }
     }

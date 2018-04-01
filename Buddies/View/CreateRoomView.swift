@@ -90,7 +90,7 @@ class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UI
         }
     }
     func requestCreateRoom(){
-        let localGroupId = GroupModel.getGroupRoomId(contacts: self.addedContactList)
+        let localGroupId = Group.getGroupRoomId(contacts: self.addedContactList)
         if let roomModel = User.CurrentUser.findLocalRoomWithId(localGroupId: localGroupId){
             if(self.roomCreatedBlock != nil){
                 self.roomCreatedBlock!(roomModel,false)
@@ -101,7 +101,7 @@ class CreateRoomView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UI
         var roomTitle = self.roomNameTextFeild?.text
         KTActivityIndicator.singleton.show(title: "Creating")
         if(roomTitle?.length == 0){
-            roomTitle = GroupModel.getGroupRoomName(contacts: self.addedContactList)
+            roomTitle = Group.getGroupRoomName(contacts: self.addedContactList)
         }
         SparkSDK?.rooms.create(title: roomTitle!) { (response: ServiceResponse<Room>) in
             switch response.result {

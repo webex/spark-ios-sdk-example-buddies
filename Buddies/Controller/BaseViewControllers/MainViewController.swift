@@ -26,7 +26,7 @@ import CallKit
 import Alamofire
 
 let MessageReceptionNotificaton = "MessageReceivedNotification"
-
+let CallReceptionNotification = "CallReceptionNotification"
 class MainViewController: UIViewController, UserOptionDelegate{
     
     // MARK: - UI variables
@@ -60,8 +60,25 @@ class MainViewController: UIViewController, UserOptionDelegate{
         self.navVC = UINavigationController(rootViewController: choosedVC)
         self.navVC?.navigationBar.updateAppearance();
         self.view.addSubview((navVC?.view)!)
+        // MARK: remove after 
+        self.registerPhone()
     }
-    
+    public func registerPhone(){
+        if(User.CurrentUser.loginType != .None && !User.CurrentUser.phoneRegisterd){
+            let acitivtyIndicator = KTActivityIndicator()
+            acitivtyIndicator.show(title: "Connecting...", at: (self.navVC?.view)!, offset: 0, size: 156, allowUserInteraction: false)
+            SparkSDK?.phone.register({ (_ error) in
+                acitivtyIndicator.hide()
+                if(error == nil){
+                    User.CurrentUser.phoneRegisterd = true
+                    (self.navVC?.topViewController as! BaseViewController).updateViewController()
+                    self.registerOnComingCall()
+                }else{
+                    KTInputBox.alert(title: "Register To Could Fail")
+                }
+            })
+        }
+    }
     // MARK: - SparkSDK: user login/logout Implementation
     @objc public func userLogin(){
         let SparkAuthenticator = OAuthAuthenticator(clientId: Constants.ClientId, clientSecret: Constants.ClientSecret, scope: Constants.Scope, redirectUri: Constants.RedirectUrl)
@@ -75,7 +92,7 @@ class MainViewController: UIViewController, UserOptionDelegate{
                         if(User.updateCurrenUser(person: person, loginType: .User)){
                             self.registerSparkWebhook(completionHandler: { (_ res) in })
                             self.userOptionView?.updateSubViews()
-                            (self.navVC?.topViewController as! BaseViewController).updateViewController()
+                            self.registerPhone()
                         }
                     }else if let error = res.result.error {
                         KTInputBox.alert(error: error)
@@ -87,12 +104,12 @@ class MainViewController: UIViewController, UserOptionDelegate{
         }
     }
     
-    
     @objc public func GuestLogin(){
         let guestLoginVC = GuestSettingViewController()
         guestLoginVC.signInSuccessBlock = {
             self.userOptionView?.updateSubViews()
             self.registerSparkWebhook(completionHandler: { (_ res) in })
+            self.registerPhone()
         }
         let loginNavVC = UINavigationController(rootViewController: guestLoginVC)
         self.present(loginNavVC, animated: true) {}
@@ -213,7 +230,7 @@ class MainViewController: UIViewController, UserOptionDelegate{
     // MARK: - message/call receiption notification dealing code
     static var providerConfiguration: CXProviderConfiguration {
         let providerConfiguration = CXProviderConfiguration(localizedName: "Buddies")
-        providerConfiguration.supportsVideo = true
+        providerConfiguration.supportsVideo = false
         providerConfiguration.maximumCallsPerCallGroup = 1
         providerConfiguration.maximumCallGroups = 1
         providerConfiguration.supportedHandleTypes = [.generic, .phoneNumber, .emailAddress]
@@ -349,28 +366,10 @@ class MainViewController: UIViewController, UserOptionDelegate{
         self.dismissUserOptionView()
     }
     
-    // other functions
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    deinit {
-        CFNotificationCenterRemoveObserver(CFNotificationCenterGetLocalCenter(),
-                                           Unmanaged.passUnretained(self).toOpaque(),
-                                           nil,
-                                           nil)
-    }
-    
-    func receiveIncomingCall(from: String, completion: ((Error?) -> Void)?) {
+    public func receiveIncomingCall(from: String) {
         self.fetchCalleeInfo(from: from)
-        self.registerOnComingCall()
     }
-    func fetchCalleeInfo(from: String){
+    public func fetchCalleeInfo(from: String){
         if let localContact = User.CurrentUser.getSingleGroupWithContactId(contactId: from){
             self.newCallCallee = localContact[0]!
             self.reportNewIncomingCall(newCall: self.newCall, from: self.newCallCallee)
@@ -384,24 +383,13 @@ class MainViewController: UIViewController, UserOptionDelegate{
         }
     }
     
-    func registerOnComingCall(){
+    public func registerOnComingCall(){
         if(User.CurrentUser.phoneRegisterd){
             SparkSDK?.phone.onIncoming = { call in
                 self.incomingCalls.append(call)
                 self.newCall = call
-                self.reportNewIncomingCall(newCall: self.newCall, from: self.newCallCallee)
+                self.receiveIncomingCall(from: (call.from?.presonId)!)
             }
-        }else{
-            SparkSDK?.phone.register({ (_ error) in
-                if(error == nil){
-                    User.CurrentUser.phoneRegisterd = true
-                    SparkSDK?.phone.onIncoming = { call in
-                        self.incomingCalls.append(call)
-                        self.newCall = call
-                        self.reportNewIncomingCall(newCall: self.newCall, from: self.newCallCallee)
-                    }
-                }
-            })
         }
     }
     
@@ -417,24 +405,28 @@ class MainViewController: UIViewController, UserOptionDelegate{
                 }
             }else{
                 self.provider.reportNewIncomingCall(with: call.uuid, update: update) { error in }
-                call.onDisconnected = { reason in
-                    var cxReason = CXCallEndedReason.unanswered
-                    switch reason {
-                    case .otherConnected:
-                        cxReason = CXCallEndedReason.answeredElsewhere
-                    case .otherDeclined:
-                        cxReason = CXCallEndedReason.declinedElsewhere
-                    case .remoteCancel:
-                        cxReason = CXCallEndedReason.remoteEnded
-                    default:
-                        break
-                    }
-                    self.provider.reportCall(with: call.uuid, endedAt: Date(), reason: cxReason)
-                }
+
             }
             self.newCall = nil
             self.newCallCallee = nil
         }
+    }
+    
+    // MARK: - other functions
+    override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        // Dispose of any resources that can be recreated.
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    deinit {
+        CFNotificationCenterRemoveObserver(CFNotificationCenterGetLocalCenter(),
+                                           Unmanaged.passUnretained(self).toOpaque(),
+                                           nil,
+                                           nil)
     }
 }
 
@@ -446,6 +438,7 @@ extension MainViewController: CXProviderDelegate {
     }
     
     func provider(_ provider: CXProvider, perform action: CXAnswerCallAction) {
+         print("@@@@@@@@@@@@@@@@@: CXAnswerCallAction")
         let uuid = action.callUUID
         if let contact = self.callers[uuid], let call = self.incomingCalls.filter({$0.uuid.uuidString == uuid.uuidString}).first{
             if self.callViewController == nil {
@@ -476,7 +469,15 @@ extension MainViewController: CXProviderDelegate {
         }
     }
     
+    public func provider(_ provider: CXProvider, perform action: CXSetGroupCallAction) {
+          print("@@@@@@@@@@@@@@@@@: CXSetGroupCallAction")
+    }
+    public func provider(_ provider: CXProvider, execute transaction: CXTransaction) -> Bool {
+         print("@@@@@@@@@@@@@@@@@: CXSetGroupCallAction")
+        return false
+    }
     public func provider(_ provider: CXProvider, perform action: CXEndCallAction) {
+         print("@@@@@@@@@@@@@@@@@: didActivate")
         if let call = self.incomingCalls.filter({$0.uuid.uuidString == action.callUUID.uuidString}).first{
             if call.status == .connected {
                 call.hangup() {
@@ -488,7 +489,7 @@ extension MainViewController: CXProviderDelegate {
             }
         }
         action.fulfill()
-    }
+    }      
     
     func provider(_ provider: CXProvider, didActivate audioSession: AVAudioSession) {
         print("@@@@@@@@@@@@@@@@@: didActivate")

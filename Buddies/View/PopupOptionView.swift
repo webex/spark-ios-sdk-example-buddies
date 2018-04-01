@@ -23,7 +23,7 @@ import Cartography
 
 class PopupOptionView : UIView {
     
-    class func buddyOptionPopUp(groupModel: GroupModel, actionColor: UIColor? = nil,  dismissHandler: @escaping (_ action: String) -> Void) {
+    class func buddyOptionPopUp(groupModel: Group, actionColor: UIColor? = nil,  dismissHandler: @escaping (_ action: String) -> Void) {
         
         var inputBox = KTInputBox()
         if(groupModel.groupType == GroupType.singleMember){
@@ -57,7 +57,7 @@ class PopupOptionView : UIView {
         inputBox.show()
     }
     
-    class func show(group: GroupModel, action: String, actionColor: UIColor? = nil,  dismissHandler: @escaping () -> Void) {
+    class func show(group: Group, action: String, actionColor: UIColor? = nil,  dismissHandler: @escaping () -> Void) {
         var inputBox = KTInputBox()
         if(group.groupType == GroupType.singleMember){
             inputBox = KTInputBox(.Default(0), title: group[0]?.name, message: group[0]?.email);
@@ -124,7 +124,7 @@ class PopupOptionView : UIView {
         avator.layer.borderColor = Constants.Color.Theme.LightControl.cgColor
         avator.setCorner(25)
     }
-    init(group: GroupModel){
+    init(group: Group){
         super.init(frame:CGRect(0, 0, 10, 70))
         let imageCount = group.grouMemberCount >= 5 ? 5 : group.grouMemberCount
         for index in (0..<imageCount).reversed() {

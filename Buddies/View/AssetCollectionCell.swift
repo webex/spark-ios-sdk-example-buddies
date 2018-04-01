@@ -36,24 +36,21 @@ class AssetCollectionCell: UICollectionViewCell {
             self.maskLayer?.removeFromSuperlayer()
         }
         
-//        let manager = PHImageManager.default()
-//        manager.requestImage(for: (self.assetModel?.asset)!, targetSize: CGSize(width: inputViewHeight, height: inputViewHeight), contentMode: .aspectFill, options: nil) { (result, _) in
-            self.imageView = UIImageView(image: self.assetModel?.image)
-            self.imageView?.layer.masksToBounds = true
-            self.imageView?.layer.cornerRadius = 12
-            self.imageView?.frame = CGRect(self.X, self.Y, self.width-5, self.height-5)
-            self.addSubview(self.imageView!)
-            self.layer.masksToBounds = true
-            
-            self.maskLayer = CAGradientLayer()
-            self.maskLayer?.frame = CGRect(0, 0, self.width, self.height)
-            self.maskLayer?.colors = [self.color1.cgColor,self.color2.cgColor]
-            self.maskLayer?.locations = [0,1.0]
-            self.maskLayer?.startPoint = CGPoint(0.5, 0);
-            self.maskLayer?.endPoint = CGPoint(0.5, 1.0);
-            self.imageView?.layer.addSublayer(self.maskLayer!)
-            self.choosed = self.isSelected
-//        }
+        self.imageView = UIImageView(image: self.assetModel?.image)
+        self.imageView?.layer.masksToBounds = true
+        self.imageView?.layer.cornerRadius = 12
+        self.imageView?.frame = CGRect(self.X, self.Y, self.width-5, self.height-5)
+        self.addSubview(self.imageView!)
+        self.layer.masksToBounds = true
+        
+        self.maskLayer = CAGradientLayer()
+        self.maskLayer?.frame = CGRect(0, 0, self.width, self.height)
+        self.maskLayer?.colors = [self.color1.cgColor,self.color2.cgColor]
+        self.maskLayer?.locations = [0,1.0]
+        self.maskLayer?.startPoint = CGPoint(0.5, 0);
+        self.maskLayer?.endPoint = CGPoint(0.5, 1.0);
+        self.imageView?.layer.addSublayer(self.maskLayer!)
+        self.choosed = self.isSelected
 
         self.setUpSelectCheckImage()
     }

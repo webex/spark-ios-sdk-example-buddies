@@ -30,6 +30,8 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
         return .lightContent
     }
     private var collectionView:UICollectionView?
+    private var roomVC : RoomViewController?
+    private var callVC : BuddiesCallViewController?
     private var isEditMode = false {
         didSet {
             self.updateNavigationItems()
@@ -47,119 +49,54 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
         self.setUpSubViews()
         self.updateNavigationItems()
     }
-    
     override func viewWillAppear(_ animated: Bool) {
-        NotificationCenter.default.addObserver(self, selector: #selector(messageNotiReceived(noti:)), name: NSNotification.Name(rawValue: MessageReceptionNotificaton), object: nil)
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        NotificationCenter.default.removeObserver(self)
-    }
-    
-    func messageNotiReceived(noti: Notification){
-        self.collectionView?.reloadData()
-    }
-    
-    // MARK: - SparkSDK: CALL/Message Function Implementation
-    
-    public func makeRoomAndCall(_ group: GroupModel){
-        
-        let localRoomName = group.groupName
-        let localGroupId = group.groupId
-        if let _ = User.CurrentUser.findLocalRoomWithId(localGroupId: localGroupId!){
-            self.makeSparkCall(group)
-        }else{
-            KTActivityIndicator.singleton.show(title: "Loading")
-            if(group.groupType == .singleMember){
-                let localRoom = RoomModel(roomId: "")
-                localRoom.localGroupId = group.groupId!
-                for contact in group.groupMembers{
-                    localRoom.roomMembers?.append(contact)
-                }
-                User.CurrentUser.insertLocalRoom(room: localRoom, atIndex: 0)
-                self.makeSparkCall(group)
-                return
-            }
-            
-            SparkSDK?.rooms.create(title: localRoomName!, completionHandler: {(response: ServiceResponse<Room>) in
-                switch response.result {
-                case .success(let value):
-                    if let createdRoom = RoomModel(room: value){
-                        createdRoom.localGroupId = group.groupId!
-                        let threahGroup = DispatchGroup()
-                        for contact in group.groupMembers{
-                            DispatchQueue.global().async(group: threahGroup, execute: DispatchWorkItem(block: {
-                                SparkSDK?.memberships.create(roomId: createdRoom.roomId, personEmail:EmailAddress.fromString(contact.email)!, completionHandler: { (response: ServiceResponse<Membership>) in
-                                    switch response.result{
-                                    case .success(_):
-                                        createdRoom.roomMembers?.append(contact)
-                                        break
-                                    case .failure:
-                                        break
-                                    }
-                                })
-                            }))
-                        }
-                        
-                        threahGroup.notify(queue: DispatchQueue.global(), execute: {
-                            DispatchQueue.main.async {
-                                KTActivityIndicator.singleton.hide()
-                                User.CurrentUser.insertLocalRoom(room: createdRoom, atIndex: 0)
-                                self.makeSparkCall(group)
-                            }
-                        })
-                    }
-                    break
-                case .failure:
-                    DispatchQueue.main.async {
-                        KTActivityIndicator.singleton.hide()
-                        self.makeSparkCall(group)
-                    }
-                    break
-                }
-            })
-        }
-        
-    }
-    
-    private func makeSparkCall(_ group: GroupModel){
-        if(group.groupType == .singleMember){
-            let contact = group[0]!
-            let callVC = BuddiesCallViewController(callee: contact)
-            self.present(callVC, animated: true) {
-                callVC.beginVideoCall()
-            }
-        }else{
-            if let callingRoom = User.CurrentUser.findLocalRoomWithId(localGroupId: group.groupId!){
-                let callVC = BuddiesCallViewController(room: callingRoom)
-                self.present(callVC, animated: true) {
-                    callVC.beginVideoCall()
-                }
-            }
+        if self.roomVC != nil{
+            self.roomVC = nil
         }
     }
-    
-    
-    public func messageActionTo(_ group: GroupModel){
+    // MARK: - SparkSDK: Phone Register And Setup Message-Receive Call Back
+    public func checkSparkRegister(){
+        if(User.CurrentUser.phoneRegisterd){
+            self.processReceiveMessages()
+        }
+    }
+    public func processReceiveMessages(){
+        SparkSDK?.messages?.onMessage = { message in
+            self.receiveNewMessage(message)
+        }
+    }
+
+    // MARK: - Spark Call / Message Function Implementation
+    public func callActionTo( _ group: Group){
         let localRoomName = group.groupName
         let localGroupId = group.groupId
         group.unReadedCount = 0
         self.collectionView?.reloadData()
         if let roomModel = User.CurrentUser.findLocalRoomWithId(localGroupId: localGroupId!){
             roomModel.title = localRoomName!
-            let roomVC = RoomViewController(room: roomModel)
-            self.navigationController?.pushViewController(roomVC, animated: true)
+            roomModel.roomMembers = [Contact]()
+            for contact in group.groupMembers{
+                roomModel.roomMembers?.append(contact)
+            }
+            self.callVC = BuddiesCallViewController(room: roomModel)
+            self.present(self.callVC!, animated: true) {
+                self.callVC?.beginCall(isVideo: true)
+            }
         }else{
             if(group.groupType == .singleMember){
                 let createdRoom = RoomModel(roomId: "")
                 createdRoom.localGroupId = group.groupId!
                 createdRoom.title = localRoomName!
+                createdRoom.type = RoomType.direct
+                createdRoom.roomMembers = [Contact]()
                 for contact in group.groupMembers{
                     createdRoom.roomMembers?.append(contact)
                 }
                 User.CurrentUser.insertLocalRoom(room: createdRoom, atIndex: 0)
-                let roomVC = RoomViewController(room: createdRoom)
-                self.navigationController?.pushViewController(roomVC, animated: true)
+                self.callVC = BuddiesCallViewController(room: createdRoom)
+                self.present(self.callVC!, animated: true) {
+                    self.callVC?.beginCall(isVideo: true)
+                }
                 return
             }
             
@@ -168,7 +105,12 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
                 switch response.result {
                 case .success(let value):
                     if let createdRoom = RoomModel(room: value){
-                        createdRoom.localGroupId = localGroupId!
+                        group.groupId = createdRoom.roomId
+                        createdRoom.localGroupId = createdRoom.roomId
+                        createdRoom.title = localRoomName
+                        createdRoom.type = RoomType.group
+                        createdRoom.roomMembers = [Contact]()
+                        group.groupId = createdRoom.roomId
                         let threahGroup = DispatchGroup()
                         for contact in group.groupMembers{
                             DispatchQueue.global().async(group: threahGroup, execute: DispatchWorkItem(block: {
@@ -189,8 +131,10 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
                             DispatchQueue.main.async {
                                 KTActivityIndicator.singleton.hide()
                                 User.CurrentUser.insertLocalRoom(room: createdRoom, atIndex: 0)
-                                let roomVC = RoomViewController(room: createdRoom)
-                                self.navigationController?.pushViewController(roomVC, animated: true)
+                                self.callVC = BuddiesCallViewController(room: createdRoom)
+                                self.present(self.callVC!, animated: true) {
+                                    self.callVC?.beginCall(isVideo: true)
+                                }
                             }
                         })
                     }
@@ -206,6 +150,121 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
         }
     }
     
+    public func messageActionTo(_ group: Group){
+        let localRoomName = group.groupName
+        let localGroupId = group.groupId
+        group.unReadedCount = 0
+        self.collectionView?.reloadData()
+        if let roomModel = User.CurrentUser.findLocalRoomWithId(localGroupId: localGroupId!){
+            roomModel.title = localRoomName!
+            roomModel.roomMembers = [Contact]()
+            for contact in group.groupMembers{
+                roomModel.roomMembers?.append(contact)
+            }
+            self.roomVC = RoomViewController(room: roomModel)
+            self.navigationController?.pushViewController(self.roomVC!, animated: true)
+        }else{
+            if(group.groupType == .singleMember){
+                let createdRoom = RoomModel(roomId: "")
+                createdRoom.localGroupId = group.groupId!
+                createdRoom.title = localRoomName!
+                createdRoom.type = RoomType.direct
+                createdRoom.roomMembers = [Contact]()
+                for contact in group.groupMembers{
+                    createdRoom.roomMembers?.append(contact)
+                }
+                User.CurrentUser.insertLocalRoom(room: createdRoom, atIndex: 0)
+                self.roomVC = RoomViewController(room: createdRoom)
+                self.navigationController?.pushViewController(self.roomVC!, animated: true)
+                return
+            }
+            
+            KTActivityIndicator.singleton.show(title: "Loading")
+            SparkSDK?.rooms.create(title: localRoomName!, completionHandler: {(response: ServiceResponse<Room>) in
+                switch response.result {
+                case .success(let value):
+                    if let createdRoom = RoomModel(room: value){
+                        group.groupId = createdRoom.roomId
+                        createdRoom.localGroupId = createdRoom.roomId
+                        createdRoom.title = localRoomName
+                        createdRoom.type = RoomType.group
+                        createdRoom.roomMembers = [Contact]()
+                        group.groupId = createdRoom.roomId
+                        let threahGroup = DispatchGroup()
+                        for contact in group.groupMembers{
+                            DispatchQueue.global().async(group: threahGroup, execute: DispatchWorkItem(block: {
+                                SparkSDK?.memberships.create(roomId: createdRoom.roomId, personEmail:EmailAddress.fromString(contact.email)!, completionHandler: { (response: ServiceResponse<Membership>) in
+                                    switch response.result{
+                                    case .success(_):
+                                        createdRoom.roomMembers?.append(contact)
+                                        break
+                                    case .failure(let error):
+                                        KTInputBox.alert(error: error)
+                                        break
+                                    }
+                                })
+                            }))
+                        }
+                        
+                        threahGroup.notify(queue: DispatchQueue.global(), execute: {
+                            DispatchQueue.main.async {
+                                KTActivityIndicator.singleton.hide()
+                                User.CurrentUser.insertLocalRoom(room: createdRoom, atIndex: 0)
+                                self.roomVC = RoomViewController(room: createdRoom)
+                                self.navigationController?.pushViewController(self.roomVC!, animated: true)
+                            }
+                        })
+                    }
+                    break
+                case .failure(let error):
+                    DispatchQueue.main.async {
+                        KTActivityIndicator.singleton.hide()
+                        KTInputBox.alert(error: error)
+                    }
+                    break
+                }
+            })
+        }
+    }
+    
+    public func receiveNewMessage( _ messageModel: MessageModel){
+        if messageModel.roomType == RoomType.direct{//GROUP
+            if let roomVC = self.roomVC, let roomModel = self.roomVC?.roomModel{
+                if messageModel.personEmail?.md5 == roomModel.localGroupId{
+                    roomVC.receiveNewMessage(message: messageModel)
+                    return
+                }
+            }
+            if let callVC = self.callVC, let roomModel = self.callVC?.roomModel{
+                if messageModel.personEmail?.md5 == roomModel.localGroupId{
+                    callVC.receiveNewMessage(message: messageModel)
+                    return
+                }
+            }
+            if let group = User.CurrentUser.getSingleGroupWithContactEmail(email: messageModel.personEmail!){
+                group.unReadedCount += 1
+                self.collectionView?.reloadData()
+            }
+        }else{
+            if let roomVC = self.roomVC, let roomModel = self.roomVC?.roomModel{
+                if messageModel.roomId == roomModel.roomId && messageModel.personEmail != User.CurrentUser.email{
+                    roomVC.receiveNewMessage(message: messageModel)
+                    return
+                }
+            }
+            if let callVC = self.callVC, let roomModel = self.callVC?.roomModel{
+                if messageModel.personEmail?.md5 == roomModel.localGroupId{
+                    callVC.receiveNewMessage(message: messageModel)
+                    return
+                }
+            }
+            if let group = User.CurrentUser[messageModel.roomId!]{
+                group.unReadedCount += 1
+                self.collectionView?.reloadData()
+            }
+        }
+    }
+
     // MARK: - UI Implementation
     private func setUpSubViews(){
         let layout = UICollectionViewFlowLayout();
@@ -302,6 +361,7 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
 
     // MARK: BaseViewController Functions Override
     override func updateViewController() {
+        self.checkSparkRegister()
         self.updateNavigationItems()
         self.collectionView?.reloadData()
     }
@@ -346,9 +406,7 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
                     if(action == "Call"){
                         let localGroupId = group.groupId
                         if User.CurrentUser.findLocalRoomWithId(localGroupId: localGroupId!) != nil{
-                            self.makeSparkCall(group)
-                        }else{
-                            self.makeRoomAndCall(group)
+                            self.callActionTo(group)
                         }
                     }else if(action == "Message"){
                         self.messageActionTo(group)
