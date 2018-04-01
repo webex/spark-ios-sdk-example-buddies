@@ -1,14 +1,22 @@
 # Buddies
 
-Buddies is a production Application with implemented Spark SDK 
+Buddies is a Demo Application that shows how to build a production App with Spark SDK. It is developed for providing reference codes and widgets to developers who wants to develop real time communication(call and messaging) applications with "Saprk-SDK".
 
-## Download App
+## Screenshots 
+<ul>
+<img src="https://github.com/ciscospark/spark-ios-sdk-example-buddies/blob/develop/ScreenShots/S_2.jpg" width="20%" height="20%">
+<img src="https://github.com/ciscospark/spark-ios-sdk-example-buddies/blob/develop/ScreenShots/S_3.jpg" width="20%" height="20%">
+<img src="https://github.com/ciscospark/spark-ios-sdk-example-buddies/blob/develop/ScreenShots/S_1.jpg" width="20%" height="20%">
+</ul>
+
+## How to install
 You can download our Demo App from TestFlight.
 1. Download TestFlight from App Stroe.
 1. Use this portal to register as our external tester:[register portal](https://buddies-ios-beta-user-signup.herokuapp.com/?token=MTcHLfVhezEow4VqgWwPTRfcKZPoXCeT
 )
 1. Check your Email to get your test Redeem code,put this code into TestFlight.
 1. Install Buddies from TestFlight.
+1. Or you could directly dwonload project.
 
 ## Setup
 Here are the steps to setup Xcode project using [CocoaPods](http://cocoapods.org):
