@@ -32,7 +32,7 @@ enum MessageState : Int{
     case sendFailed
 }
 
-class MessageModel: NSObject {
+class Message: NSObject {
 
     public var messageId: String?
     
@@ -58,7 +58,7 @@ class MessageModel: NSObject {
     
     public var imageDataDict: Dictionary<String, Data>?
     
-    convenience init?(message: Message) {
+    convenience init?(message: MessageModel) {
         self.init()
         if let roomId = message.roomId{
             self.roomId = roomId
@@ -70,7 +70,7 @@ class MessageModel: NSObject {
             self.personId = personId
         }
         if let personEmail = message.personEmail{
-            self.personEmail = personEmail
+            self.personEmail = EmailAddress.fromString(personEmail)
         }
         if let text = message.text{
             self.text = text
