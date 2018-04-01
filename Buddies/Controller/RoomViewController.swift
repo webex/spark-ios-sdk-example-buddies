@@ -49,7 +49,7 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
         super.viewDidLoad()
         self.setUpTopNavigationView()
         self.setUpSupViews()
-//        self.requestMessageData()
+        self.requestMessageData()
 
     }
     
