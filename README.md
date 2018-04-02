@@ -4,14 +4,15 @@ Buddies is a Demo Application that shows how to build a production App with Spar
 
 ## Screenshots 
 <ul>
-<img src="https://github.com/ciscospark/spark-ios-sdk-example-buddies/blob/develop/ScreenShots/S_2.jpg" width="20%" height="20%">
-<img src="https://github.com/ciscospark/spark-ios-sdk-example-buddies/blob/develop/ScreenShots/S_3.jpg" width="20%" height="20%">
-<img src="https://github.com/ciscospark/spark-ios-sdk-example-buddies/blob/develop/ScreenShots/S_1.jpg" width="20%" height="20%">
+<img src="https://github.com/ciscospark/spark-ios-sdk-example-buddies/blob/develop/ScreenShots/S_4.jpg" width="20%" height="25%">
+<img src="https://github.com/ciscospark/spark-ios-sdk-example-buddies/blob/develop/ScreenShots/S_2.jpg" width="20%" height="25%">
+<img src="https://github.com/ciscospark/spark-ios-sdk-example-buddies/blob/develop/ScreenShots/S_3.jpg" width="20%" height="25%">
+<img src="https://github.com/ciscospark/spark-ios-sdk-example-buddies/blob/develop/ScreenShots/S_1.jpg" width="20%" height="25%">
 </ul>
-
-1. ScreenShot-1: Main messaging page.
-1. ScreenShot-2: Application page, contains buddies and groups.
-1. ScreenShot-3: Create group/add buddy Page.
+1. ScreenShot-1: Calling Page.
+1. ScreenShot-2: Main messaging page.
+1. ScreenShot-3: Application page, contains buddies and groups.
+1. ScreenShot-4: Create group/add buddy Page.
 
 ## How to install
 You can download our Demo App from TestFlight.
