@@ -84,7 +84,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     }
     
     init(room: RoomModel, uuid: UUID? = nil, callkit: CXProvider? = nil){
-        self.isGroupCall = true
+        self.isGroupCall = room.type == RoomType.group ? true : false
         self.callee = Contact(id: "", name: room.title!, email: room.roomId)
         self.uuid = uuid
         self.callkit = callkit
@@ -132,14 +132,31 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         }else{
             mediaOption = MediaOption.audioOnly()
         }
-        SparkSDK?.phone.dial(self.callee.email, option:  mediaOption) { result in
-            KTActivityIndicator.singleton.hide()
-            switch result {
-            case .success(let call):
-                self.currentCall = call
-                self.callStateChangeCallBacks(call: call)
-            case .failure(let error):
-                self.disMissVC(error)
+        if let room = self.roomModel{
+            if room.type == RoomType.direct {
+                SparkSDK?.phone.dial(room.localGroupId, option:  mediaOption) { result in
+                    KTActivityIndicator.singleton.hide()
+                    switch result {
+                    case .success(let call):
+                        self.currentCall = call
+                        self.callStateChangeCallBacks(call: call)
+                    case .failure(let error):
+                        self.disMissVC(error)
+                    }
+                }
+            }else{
+                if let roomId = self.roomModel?.roomId{
+                    SparkSDK?.phone.dial(roomId, option:  mediaOption) { result in
+                        KTActivityIndicator.singleton.hide()
+                        switch result {
+                        case .success(let call):
+                            self.currentCall = call
+                            self.callStateChangeCallBacks(call: call)
+                        case .failure(let error):
+                            self.disMissVC(error)
+                        }
+                    }
+                }
             }
         }
     }
