@@ -4,10 +4,10 @@ Buddies is a Demo Application that shows how to build a production App with Spar
 
 ## Screenshots 
 <ul>
-<img src="https://github.com/ciscospark/spark-ios-sdk-example-buddies/blob/develop/ScreenShots/S_4.jpg" width="20%" height="25%">
-<img src="https://github.com/ciscospark/spark-ios-sdk-example-buddies/blob/develop/ScreenShots/S_2.jpg" width="20%" height="25%">
-<img src="https://github.com/ciscospark/spark-ios-sdk-example-buddies/blob/develop/ScreenShots/S_3.jpg" width="20%" height="25%">
-<img src="https://github.com/ciscospark/spark-ios-sdk-example-buddies/blob/develop/ScreenShots/S_1.jpg" width="20%" height="25%">
+<img src="https://github.com/ciscospark/spark-ios-sdk-example-buddies/blob/develop/ScreenShots/S_4.jpg" width="22%" height="25%">
+<img src="https://github.com/ciscospark/spark-ios-sdk-example-buddies/blob/develop/ScreenShots/S_2.jpg" width="22%" height="25%">
+<img src="https://github.com/ciscospark/spark-ios-sdk-example-buddies/blob/develop/ScreenShots/S_3.jpg" width="22%" height="25%">
+<img src="https://github.com/ciscospark/spark-ios-sdk-example-buddies/blob/develop/ScreenShots/S_1.jpg" width="22%" height="25%">
 </ul>
 
 1. ScreenShot-1: Calling people/room Page.
