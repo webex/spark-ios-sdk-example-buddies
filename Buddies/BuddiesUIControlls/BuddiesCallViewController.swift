@@ -617,7 +617,9 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     
     private func setUpMessageTableView(){
         if(self.messageTableView == nil){
-            self.messageTableView = UITableView(frame: CGRect(Int(Constants.Size.screenWidth*2),Int(messageTableViewHeight*3-154),Int(Constants.Size.screenWidth),Int(messageTableViewHeight)))
+            let inputViewY = Constants.Size.navHeight > 64 ? (Constants.Size.screenHeight - 188) : (Constants.Size.screenHeight - 154)
+            let Y = (inputViewY - messageTableViewHeight)
+            self.messageTableView = UITableView(frame: CGRect(Int(Constants.Size.screenWidth*2),Int(Y),Int(Constants.Size.screenWidth),Int(messageTableViewHeight)))
             self.messageTableView?.separatorStyle = .none
             self.messageTableView?.backgroundColor = UIColor.clear
             self.messageTableView?.delegate = self
@@ -672,6 +674,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     }
     
     // MARK: Page Logic Iplementation
+    // MARK: - SparkSDK: post message current room
     func sendMessage(text: String, _ assetList:[BDAssetModel]? = nil , _ mentionList:[Contact]? = nil){
         let tempMessageModel = Message()
         tempMessageModel.roomId = self.roomModel?.roomId
@@ -703,15 +706,20 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
             tempMessageModel.fileNames = []
             let manager = PHImageManager.default()
             let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
+            var loadedCount = 0
+            let requestOptions = PHImageRequestOptions()
+            requestOptions.resizeMode = .exact
+            requestOptions.deliveryMode = .highQualityFormat
             for index in 0..<models.count{
                 let asset = models[index].asset
-                manager.requestImage(for: asset, targetSize: CGSize(width: 320, height: 320), contentMode: .aspectFill, options: nil) { (result, info) in
+                manager.requestImage(for: asset, targetSize: CGSize(width: asset.pixelWidth/4, height: asset.pixelHeight/4), contentMode: .aspectFill, options: requestOptions) { (result, info) in
                     let date : Date = Date()
                     let dateFormatter = DateFormatter()
                     dateFormatter.dateFormat = "MMMddyyyy:hhmmSSS"
                     let todaysDate = dateFormatter.string(from: date)
-                    let name = "Image-" + todaysDate + ".png"
+                    let name = "Image-" + todaysDate + ".jpg"
                     let destinationPath = documentsPath + "/" + name
+                    loadedCount += 1
                     if let data = UIImageJPEGRepresentation(result!, 1.0){
                         do{
                             try data.write(to: URL(fileURLWithPath: destinationPath))
@@ -721,7 +729,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
                             tempFile.fileType = FileType.Image
                             files.append(tempFile)
                             tempMessageModel.fileNames?.append(name)
-                            if index == models.count - 1{
+                            if loadedCount == models.count{
                                 tempMessageModel.files = files
                                 self.postMessage(message: tempMessageModel)
                             }
@@ -736,15 +744,14 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         }
         return
     }
-    
     func postMessage(message: Message){
         self.messageList.append(message)
         let indexPath = IndexPath(row: self.messageList.count-1, section: 0)
         self.messageTableView?.reloadData()
+        _ = self.messageTableView?.cellForRow(at: indexPath)
         self.messageTableView?.scrollToRow(at: indexPath, at: .bottom, animated: false)
         self.buddiesInputView?.inputTextView?.text = ""
     }
-    
     
     private func disMissVC( _ error: Error? = nil, _ reasonString: String? = nil){
         KTActivityIndicator.singleton.hide()

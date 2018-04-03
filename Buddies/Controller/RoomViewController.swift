@@ -88,7 +88,9 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
                     }
                     self.messageTableView?.reloadData()
                     let indexPath = IndexPath(row: self.messageList.count-1, section: 0)
-                    self.messageTableView?.scrollToRow(at: indexPath, at: .bottom, animated: false)
+                    if self.messageList.count != 0{
+                        self.messageTableView?.scrollToRow(at: indexPath, at: .bottom, animated: false)
+                    }
                     break
                 case .failure:
                     break
@@ -148,15 +150,20 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
             tempMessageModel.fileNames = []
             let manager = PHImageManager.default()
             let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
+            var loadedCount = 0
+            let requestOptions = PHImageRequestOptions()
+            requestOptions.resizeMode = .exact
+            requestOptions.deliveryMode = .highQualityFormat
             for index in 0..<models.count{
                 let asset = models[index].asset
-                manager.requestImage(for: asset, targetSize: CGSize(width: 320, height: 320), contentMode: .aspectFill, options: nil) { (result, info) in
+                manager.requestImage(for: asset, targetSize: CGSize(width: asset.pixelWidth/4, height: asset.pixelHeight/4), contentMode: .aspectFill, options: requestOptions) { (result, info) in
                     let date : Date = Date()
                     let dateFormatter = DateFormatter()
                     dateFormatter.dateFormat = "MMMddyyyy:hhmmSSS"
                     let todaysDate = dateFormatter.string(from: date)
-                    let name = "Image-" + todaysDate + ".png"
+                    let name = "Image-" + todaysDate + ".jpg"
                     let destinationPath = documentsPath + "/" + name
+                    loadedCount += 1
                     if let data = UIImageJPEGRepresentation(result!, 1.0){
                         do{
                             try data.write(to: URL(fileURLWithPath: destinationPath))
@@ -166,7 +173,7 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
                             tempFile.fileType = FileType.Image
                             files.append(tempFile)
                             tempMessageModel.fileNames?.append(name)
-                            if index == models.count - 1{
+                            if loadedCount == models.count{
                                 tempMessageModel.files = files
                                 self.postMessage(message: tempMessageModel)
                             }
@@ -185,6 +192,7 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
         self.messageList.append(message)
         let indexPath = IndexPath(row: self.messageList.count-1, section: 0)
         self.messageTableView?.reloadData()
+        _ = self.messageTableView?.cellForRow(at: indexPath)
         self.messageTableView?.scrollToRow(at: indexPath, at: .bottom, animated: false)
         self.buddiesInputView?.inputTextView?.text = ""
     }
@@ -257,7 +265,8 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
             self.messageTableView?.backgroundColor = Constants.Color.Theme.Background
             self.messageTableView?.delegate = self
             self.messageTableView?.dataSource = self
-            self.messageTableView?.alwaysBounceVertical=true
+            self.messageTableView?.alwaysBounceVertical = true
+            self.messageTableView?.showsVerticalScrollIndicator = false
             self.view.addSubview(self.messageTableView!)
         }
     }

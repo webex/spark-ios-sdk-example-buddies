@@ -234,16 +234,17 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
                     roomVC.receiveNewMessage(message: messageModel)
                     return
                 }
+            }else{
+                if let group = User.CurrentUser.getSingleGroupWithContactEmail(email: messageModel.personEmail!){
+                    group.unReadedCount += 1
+                    self.collectionView?.reloadData()
+                }
             }
             if let callVC = self.callVC, let roomModel = self.callVC?.roomModel{
                 if messageModel.personEmail?.md5 == roomModel.localGroupId{
                     callVC.receiveNewMessage(message: messageModel)
                     return
                 }
-            }
-            if let group = User.CurrentUser.getSingleGroupWithContactEmail(email: messageModel.personEmail!){
-                group.unReadedCount += 1
-                self.collectionView?.reloadData()
             }
         }else{
             if let roomVC = self.roomVC, let roomModel = self.roomVC?.roomModel{
@@ -251,16 +252,17 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
                     roomVC.receiveNewMessage(message: messageModel)
                     return
                 }
+            }else{
+                if let group = User.CurrentUser[messageModel.roomId!]{
+                    group.unReadedCount += 1
+                    self.collectionView?.reloadData()
+                }
             }
             if let callVC = self.callVC, let roomModel = self.callVC?.roomModel{
                 if messageModel.personEmail?.md5 == roomModel.localGroupId{
                     callVC.receiveNewMessage(message: messageModel)
                     return
                 }
-            }
-            if let group = User.CurrentUser[messageModel.roomId!]{
-                group.unReadedCount += 1
-                self.collectionView?.reloadData()
             }
         }
     }
@@ -404,14 +406,10 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
             if let group = cell.groupModel {
                 PopupOptionView.buddyOptionPopUp(groupModel: group) { (action: String) in
                     if(action == "Call"){
-                        let localGroupId = group.groupId
-                        if User.CurrentUser.findLocalRoomWithId(localGroupId: localGroupId!) != nil{
-                            self.callActionTo(group)
-                        }
+                        self.callActionTo(group)
                     }else if(action == "Message"){
                         self.messageActionTo(group)
                     }
-                    
                 }
             }
         }

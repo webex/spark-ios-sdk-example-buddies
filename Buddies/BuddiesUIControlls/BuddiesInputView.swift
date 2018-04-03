@@ -466,6 +466,7 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
     
     // MARK: - Load All Availble Cemara Roll Resources
     func loadAllAssets(){
+        self.allAssets.removeAll()
         let allImages = PHAsset.fetchAssets(with: PHAssetMediaType.image , options: nil)
         allImages.enumerateObjects({ (object, count, stop) in
             self.allAssets.append(object)
