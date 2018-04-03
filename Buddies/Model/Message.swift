@@ -30,9 +30,10 @@ enum MessageState : Int{
     case received
     case willSend
     case sendFailed
+    case sending
 }
 
-class MessageModel: NSObject {
+class Message: NSObject {
 
     public var messageId: String?
     
@@ -44,7 +45,9 @@ class MessageModel: NSObject {
     
     public var text: String?
     
-    public var files: [String]?
+    public var files: [FileObjectModel]?
+    
+    public var fileNames: [String]?
     
     public var toPersonId: String?
     
@@ -56,40 +59,51 @@ class MessageModel: NSObject {
     
     public var localGroupId: String? //GroupId contain witch Room it is involved in
     
+    public var mentionList: [MessageMentionModel]?
+    
     public var imageDataDict: Dictionary<String, Data>?
     
-    convenience init?(message: Message) {
+    convenience init?(messageModel: MessageModel) {
         self.init()
-        if let roomId = message.roomId{
+        if let roomId = messageModel.roomId{
             self.roomId = roomId
         }
-        if let messageId = message.id{
+        if let messageId = messageModel.id{
             self.messageId = messageId
         }
-        if let personId = message.personId{
+        if let personId = messageModel.personId{
             self.personId = personId
         }
-        if let personEmail = message.personEmail{
-            self.personEmail = personEmail
+        if let personEmail = messageModel.personEmail{
+            self.personEmail = EmailAddress.fromString(personEmail)
         }
-        if let text = message.text{
+        if let text = messageModel.text{
             self.text = text
         }
-        if let messageId = message.id{
+        if let messageId = messageModel.id{
             self.messageId = messageId
         }
-        if let files = message.files{
+        if let files = messageModel.files{
             self.files = files
+            self.fileNames = []
+            for file in files{
+                if let fileName = file.displayName{
+                    self.fileNames?.append(fileName)
+                }else{
+                    self.fileNames?.append("Unkwon")
+                }
+            }
         }
-        if let toPersonId = message.toPersonId{
+        if let toPersonId = messageModel.toPersonId{
             self.toPersonId = toPersonId
         }
-        if let toPersonEmail = message.toPersonEmail{
-            self.toPersonEmail = toPersonEmail
+        if let toPersonEmail = messageModel.toPersonEmail{
+            self.toPersonEmail = EmailAddress.fromString(toPersonEmail)
         }
-        if let created = message.created{
+        if let created = messageModel.created{
             self.created = created
         }
+        
     }
     
 }

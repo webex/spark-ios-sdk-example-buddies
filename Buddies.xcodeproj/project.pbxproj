@@ -7,7 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		10259AC42061FE3B00843619 /* RoomModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10259AC22061FE3B00843619 /* RoomModel.swift */; };
+		10259AC52061FE3B00843619 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10259AC32061FE3B00843619 /* Message.swift */; };
 		104DF1481F466F2D00BC1CB5 /* GuestSettingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 104DF1471F466F2D00BC1CB5 /* GuestSettingViewController.swift */; };
+		105B4508206B617300F4599A /* AssetCollectionCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 105B4507206B617300F4599A /* AssetCollectionCell.swift */; };
+		105B450A206CACA300F4599A /* BDAssetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 105B4509206CACA300F4599A /* BDAssetModel.swift */; };
+		105B450C206CE84B00F4599A /* SelectedAssetCollectionCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 105B450B206CE84B00F4599A /* SelectedAssetCollectionCell.swift */; };
 		105BB1D31F413B61005B740F /* BuddiesInputView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 105BB1D11F413B61005B740F /* BuddiesInputView.swift */; };
 		105BB1D41F413B61005B740F /* BuddiesCallViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 105BB1D21F413B61005B740F /* BuddiesCallViewController.swift */; };
 		10DBFF321F3BE35A00209DEC /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFEFE1F3BE35A00209DEC /* AppDelegate.swift */; };
@@ -35,9 +40,7 @@
 		10DBFF491F3BE35A00209DEC /* UIView+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF1A1F3BE35A00209DEC /* UIView+Ext.swift */; };
 		10DBFF4A1F3BE35A00209DEC /* UIWindow+Ext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF1B1F3BE35A00209DEC /* UIWindow+Ext.swift */; };
 		10DBFF4C1F3BE35A00209DEC /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF1E1F3BE35A00209DEC /* Contact.swift */; };
-		10DBFF4D1F3BE35A00209DEC /* GroupModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF1F1F3BE35A00209DEC /* GroupModel.swift */; };
-		10DBFF4E1F3BE35A00209DEC /* MessageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF201F3BE35A00209DEC /* MessageModel.swift */; };
-		10DBFF4F1F3BE35A00209DEC /* RoomModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF211F3BE35A00209DEC /* RoomModel.swift */; };
+		10DBFF4D1F3BE35A00209DEC /* Group.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF1F1F3BE35A00209DEC /* Group.swift */; };
 		10DBFF501F3BE35A00209DEC /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF221F3BE35A00209DEC /* User.swift */; };
 		10DBFF511F3BE35A00209DEC /* ContactCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF261F3BE35A00209DEC /* ContactCollectionViewCell.swift */; };
 		10DBFF521F3BE35A00209DEC /* CreateGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10DBFF271F3BE35A00209DEC /* CreateGroupView.swift */; };
@@ -55,7 +58,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		10259AC22061FE3B00843619 /* RoomModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RoomModel.swift; sourceTree = "<group>"; };
+		10259AC32061FE3B00843619 /* Message.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
 		104DF1471F466F2D00BC1CB5 /* GuestSettingViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GuestSettingViewController.swift; sourceTree = "<group>"; };
+		105B4507206B617300F4599A /* AssetCollectionCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetCollectionCell.swift; sourceTree = "<group>"; };
+		105B4509206CACA300F4599A /* BDAssetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BDAssetModel.swift; sourceTree = "<group>"; };
+		105B450B206CE84B00F4599A /* SelectedAssetCollectionCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectedAssetCollectionCell.swift; sourceTree = "<group>"; };
 		105BB1D11F413B61005B740F /* BuddiesInputView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BuddiesInputView.swift; sourceTree = "<group>"; };
 		105BB1D21F413B61005B740F /* BuddiesCallViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BuddiesCallViewController.swift; sourceTree = "<group>"; };
 		10DBFEFE1F3BE35A00209DEC /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -84,9 +92,7 @@
 		10DBFF1B1F3BE35A00209DEC /* UIWindow+Ext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIWindow+Ext.swift"; sourceTree = "<group>"; };
 		10DBFF1C1F3BE35A00209DEC /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		10DBFF1E1F3BE35A00209DEC /* Contact.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Contact.swift; sourceTree = "<group>"; };
-		10DBFF1F1F3BE35A00209DEC /* GroupModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GroupModel.swift; sourceTree = "<group>"; };
-		10DBFF201F3BE35A00209DEC /* MessageModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageModel.swift; sourceTree = "<group>"; };
-		10DBFF211F3BE35A00209DEC /* RoomModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RoomModel.swift; sourceTree = "<group>"; };
+		10DBFF1F1F3BE35A00209DEC /* Group.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Group.swift; sourceTree = "<group>"; };
 		10DBFF221F3BE35A00209DEC /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		10DBFF261F3BE35A00209DEC /* ContactCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ContactCollectionViewCell.swift; sourceTree = "<group>"; };
 		10DBFF271F3BE35A00209DEC /* CreateGroupView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CreateGroupView.swift; sourceTree = "<group>"; };
@@ -142,6 +148,8 @@
 				10DBFF2E1F3BE35A00209DEC /* RoomListTableCell.swift */,
 				10DBFF301F3BE35A00209DEC /* TeamListTableCell.swift */,
 				10DBFF2B1F3BE35A00209DEC /* MessageTableCell.swift */,
+				105B4507206B617300F4599A /* AssetCollectionCell.swift */,
+				105B450B206CE84B00F4599A /* SelectedAssetCollectionCell.swift */,
 			);
 			name = TableCells;
 			sourceTree = "<group>";
@@ -223,11 +231,12 @@
 		10DBFF1D1F3BE35A00209DEC /* Model */ = {
 			isa = PBXGroup;
 			children = (
+				10259AC32061FE3B00843619 /* Message.swift */,
+				10259AC22061FE3B00843619 /* RoomModel.swift */,
 				10DBFF1E1F3BE35A00209DEC /* Contact.swift */,
-				10DBFF1F1F3BE35A00209DEC /* GroupModel.swift */,
-				10DBFF201F3BE35A00209DEC /* MessageModel.swift */,
-				10DBFF211F3BE35A00209DEC /* RoomModel.swift */,
+				10DBFF1F1F3BE35A00209DEC /* Group.swift */,
 				10DBFF221F3BE35A00209DEC /* User.swift */,
+				105B4509206CACA300F4599A /* BDAssetModel.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -393,7 +402,8 @@
 				"${BUILT_PRODUCTS_DIR}/NVActivityIndicatorView/NVActivityIndicatorView.framework",
 				"${BUILT_PRODUCTS_DIR}/ObjectMapper/ObjectMapper.framework",
 				"${BUILT_PRODUCTS_DIR}/SDWebImage/SDWebImage.framework",
-				"${PODS_ROOT}/SparkSDK/MediaEngine/Wme.framework",
+				"${PODS_ROOT}/SparkSDK/Vendors/SparkSDKEncryptionKit.framework",
+				"${PODS_ROOT}/SparkSDK/Vendors/Wme.framework",
 				"${BUILT_PRODUCTS_DIR}/SparkSDK/SparkSDK.framework",
 				"${BUILT_PRODUCTS_DIR}/Starscream/Starscream.framework",
 				"${BUILT_PRODUCTS_DIR}/SwiftyJSON/SwiftyJSON.framework",
@@ -408,6 +418,7 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/NVActivityIndicatorView.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ObjectMapper.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SDWebImage.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SparkSDKEncryptionKit.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Wme.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SparkSDK.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Starscream.framework",
@@ -459,9 +470,9 @@
 				105BB1D41F413B61005B740F /* BuddiesCallViewController.swift in Sources */,
 				10DBFF451F3BE35A00209DEC /* UIColor+Ext.swift in Sources */,
 				10DBFF471F3BE35A00209DEC /* UIImage+Ext.swift in Sources */,
+				105B4508206B617300F4599A /* AssetCollectionCell.swift in Sources */,
 				10DBFF431F3BE35A00209DEC /* MKTextField.swift in Sources */,
 				10DBFF371F3BE35A00209DEC /* ContactViewController.swift in Sources */,
-				10DBFF4F1F3BE35A00209DEC /* RoomModel.swift in Sources */,
 				105BB1D31F413B61005B740F /* BuddiesInputView.swift in Sources */,
 				10DBFF491F3BE35A00209DEC /* UIView+Ext.swift in Sources */,
 				10DBFF391F3BE35A00209DEC /* MainViewController.swift in Sources */,
@@ -469,17 +480,20 @@
 				10DBFF591F3BE35A00209DEC /* RoomListTableCell.swift in Sources */,
 				10DBFF401F3BE35A00209DEC /* Array+Ext.swift in Sources */,
 				10DBFF481F3BE35A00209DEC /* UILabel+Ext.swift in Sources */,
-				10DBFF4D1F3BE35A00209DEC /* GroupModel.swift in Sources */,
+				10DBFF4D1F3BE35A00209DEC /* Group.swift in Sources */,
 				10DBFF411F3BE35A00209DEC /* CGPoint+Ext.swift in Sources */,
 				10DBFF4A1F3BE35A00209DEC /* UIWindow+Ext.swift in Sources */,
+				105B450C206CE84B00F4599A /* SelectedAssetCollectionCell.swift in Sources */,
 				10DBFF561F3BE35A00209DEC /* MessageTableCell.swift in Sources */,
 				10DBFF521F3BE35A00209DEC /* CreateGroupView.swift in Sources */,
 				10DBFF5C1F3BE35A00209DEC /* UserOptionView.swift in Sources */,
-				10DBFF4E1F3BE35A00209DEC /* MessageModel.swift in Sources */,
 				10DBFF5B1F3BE35A00209DEC /* TeamListTableCell.swift in Sources */,
 				10DBFF3D1F3BE35A00209DEC /* TeamListViewController.swift in Sources */,
 				10DBFF441F3BE35A00209DEC /* String+Ext.swift in Sources */,
+				10259AC52061FE3B00843619 /* Message.swift in Sources */,
+				105B450A206CACA300F4599A /* BDAssetModel.swift in Sources */,
 				10DBFF421F3BE35A00209DEC /* KTActivityIndicator.swift in Sources */,
+				10259AC42061FE3B00843619 /* RoomModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

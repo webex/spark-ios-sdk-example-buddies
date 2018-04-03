@@ -96,9 +96,8 @@ class PeopleListViewController: BaseViewController,UISearchBarDelegate,UITableVi
     
         let callVC = BuddiesCallViewController(callee: contact)
         self.present(callVC, animated: true) {
-            callVC.beginVideoCall()
+            callVC.beginCall(isVideo: true)
         }
-        
     }
     
     // MARK:  - UI Implementation
@@ -149,7 +148,7 @@ class PeopleListViewController: BaseViewController,UISearchBarDelegate,UITableVi
     func setUpCreateGroupView(){
         if(self.createGroupView == nil){
             self.createGroupView = CreateGroupView(frame: CGRect(x: 0.0, y: 0.0, width: CGFloat(Constants.Size.screenWidth), height: CGFloat(Constants.Size.screenHeight-CGFloat(Constants.Size.navHeight))))
-            self.createGroupView?.groupCreateBlock = { (newGroup : GroupModel) in
+            self.createGroupView?.groupCreateBlock = { (newGroup : Group) in
                 if User.CurrentUser[newGroup.groupId!] == nil {
                     User.CurrentUser.addNewGroup(newGroup: newGroup)
                     self.userGroupChanged = true

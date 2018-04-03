@@ -33,7 +33,7 @@ class RoomModel: NSObject,NSCoding {
     
     var title: String?
 
-    var type: String?  ///  "group" Group room among multiple people, "direct"  1-to-1 room between two people
+    var type: RoomType?  ///  "group" Group room among multiple people, "direct"  1-to-1 room between two people
     
     var isLocked: Bool? = false
     
@@ -48,10 +48,11 @@ class RoomModel: NSObject,NSCoding {
         self.localGroupId = ""
     }
     
-    init(groupModel: GroupModel){
+    init(groupModel: Group){
         self.roomId = ""
         self.localGroupId = groupModel.groupId!
         self.title = groupModel.groupName
+        self.roomMembers = groupModel.groupMembers
     }
     
     convenience init?(room: Room) {
@@ -62,7 +63,7 @@ class RoomModel: NSObject,NSCoding {
         if let title = room.title{
             self.title = title
         }
-        if let type = room.type?.rawValue{
+        if let type = room.type{
             self.type = type
         }
         if let isLocked = room.isLocked{
@@ -80,7 +81,7 @@ class RoomModel: NSObject,NSCoding {
         aCoder.encode(self.localGroupId, forKey: "localGroupId")
         
         if self.type != nil{
-            aCoder.encode(self.type, forKey: "type")
+            aCoder.encode(self.type?.rawValue, forKey: "type")
         }
         if self.title != nil{
             aCoder.encode(self.title, forKey: "title")
@@ -100,7 +101,7 @@ class RoomModel: NSObject,NSCoding {
         self.roomId = aDecoder.decodeObject(forKey: "RoomId") as! String
         self.localGroupId = aDecoder.decodeObject(forKey: "localGroupId") as! String
         self.title = aDecoder.decodeObject(forKey: "title") as? String
-        self.type = aDecoder.decodeObject(forKey: "type") as? String
+        self.type = RoomType(rawValue: (aDecoder.decodeObject(forKey: "type") as? String)!)
         self.isLocked = aDecoder.decodeObject(forKey: "isLocked") as? Bool
         self.lastActivity = aDecoder.decodeObject(forKey: "lastActivity") as? String
         self.teamId = aDecoder.decodeObject(forKey: "teamId") as? String

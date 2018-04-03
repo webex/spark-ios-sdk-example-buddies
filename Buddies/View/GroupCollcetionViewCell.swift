@@ -29,7 +29,7 @@ class GroupCollcetionViewCell: UICollectionViewCell {
     let name: UILabel
     let email: UILabel
     let delete: UIButton
-    var groupModel: GroupModel?
+    var groupModel: Group?
     var groupImageBackView: UIView?
     var unreadedLabel: UILabel
     
@@ -104,15 +104,16 @@ class GroupCollcetionViewCell: UICollectionViewCell {
             view.width == 20
             view.height == 20
         }
+        
         constrain(self.unreadedLabel) { view in
-            view.top == view.superview!.top + 10
-            view.left == view.superview!.left + 25
+            view.bottom == view.superview!.bottom/2 + 30
+            view.left == view.superview!.left + 10
             view.width == 20
             view.height == 20
         }
     }
     
-    func setGroup(_ groupModel: GroupModel) {
+    func setGroup(_ groupModel: Group) {
         self.groupModel = groupModel
         self.setUpGroupImageView()
         
@@ -126,6 +127,10 @@ class GroupCollcetionViewCell: UICollectionViewCell {
         }else{
             self.name.text = self.groupModel?.groupName
             self.email.text = ""
+            if((self.groupModel?.unReadedCount)! > 0){
+                self.unreadedLabel.isHidden = false
+                self.unreadedLabel.text = String(describing: (self.groupModel?.unReadedCount)!)
+            }
         }
 
     }
@@ -160,6 +165,12 @@ class GroupCollcetionViewCell: UICollectionViewCell {
                 view.width == 90
                 view.height == 90
             }
+//            constrain(self.unreadedLabel) { view in
+//                view.top == view.superview!.top + 10
+//                view.left == view.superview!.left + 25
+//                view.width == 20
+//                view.height == 20
+//            }
             return;
  
         }
@@ -198,6 +209,12 @@ class GroupCollcetionViewCell: UICollectionViewCell {
                     break
                 }
             }
+//            constrain(self.unreadedLabel) { view in
+//                view.top == view.superview!.top + 10
+//                view.left == view.superview!.left + 25
+//                view.width == 20
+//                view.height == 20
+//            }
             return;
         }
         
@@ -244,6 +261,12 @@ class GroupCollcetionViewCell: UICollectionViewCell {
                     break
                 }
             }
+//            constrain(self.unreadedLabel) { view in
+//                view.top == view.superview!.top - 5
+//                view.left == view.superview!.left+30
+//                view.width == 20
+//                view.height == 20
+//            }
             return;
         }
         
@@ -297,7 +320,14 @@ class GroupCollcetionViewCell: UICollectionViewCell {
                 default:
                     break
                 }
+                
             }
+//            constrain(self.unreadedLabel) { view in
+//                view.top == view.superview!.top - 5
+//                view.left == view.superview!.left
+//                view.width == 20
+//                view.height == 20
+//            }
             return;
         }
         
@@ -368,6 +398,12 @@ class GroupCollcetionViewCell: UICollectionViewCell {
                     break
                 }
             }
+//            constrain(self.unreadedLabel) { view in
+//                view.top == view.superview!.top - 5
+//                view.left == view.superview!.left
+//                view.width == 20
+//                view.height == 20
+//            }
             return;
         }
     }

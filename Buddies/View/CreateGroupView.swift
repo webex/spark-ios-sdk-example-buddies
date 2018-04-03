@@ -23,7 +23,7 @@ import SparkSDK
 class CreateGroupView: UIView, UITextFieldDelegate , UICollectionViewDelegate, UICollectionViewDataSource, UITableViewDelegate, UITableViewDataSource,UISearchBarDelegate {
     
     // MARK: - UI variables
-    var groupCreateBlock: ((GroupModel)->())?
+    var groupCreateBlock: ((Group)->())?
     
     private var backView : UIView?
     private var addedCollectionView: UICollectionView?
@@ -230,7 +230,6 @@ class CreateGroupView: UIView, UITextFieldDelegate , UICollectionViewDelegate, U
         self.backView?.addSubview(btnBackView)
     }
     
-    
     // MARK: UI Logic Implementation
     func checkAddedPeopleList(choosedContact: Contact)->Bool{
         let email = choosedContact.email
@@ -244,7 +243,7 @@ class CreateGroupView: UIView, UITextFieldDelegate , UICollectionViewDelegate, U
     
     @objc private func createGroupBtnClicked(){
         let groupTitle = self.groupNameTextFeild?.text
-        let newGroup = GroupModel(contacts: self.addedContactList, name: groupTitle)
+        let newGroup = Group(contacts: self.addedContactList, name: groupTitle)
         if(self.groupCreateBlock != nil){
             self.groupCreateBlock!(newGroup)
         }
@@ -370,11 +369,7 @@ class CreateGroupView: UIView, UITextFieldDelegate , UICollectionViewDelegate, U
         textField.resignFirstResponder()
         return true
     }
-    
-    
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
-    
 }

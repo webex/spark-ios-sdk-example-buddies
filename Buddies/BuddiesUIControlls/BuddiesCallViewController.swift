@@ -22,6 +22,7 @@ import UIKit
 import CallKit
 import Cartography
 import SparkSDK
+import Photos
 
 class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableViewDataSource,UIScrollViewDelegate{
     
@@ -60,14 +61,15 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     
     // MARK: Message Feature UI
     private static var callContext = 0
-    private let messageTableViewHeight = (Constants.Size.screenHeight/4)
+    private let messageTableViewHeight = (Constants.Size.screenHeight/4+50)
     private var backScrollView: UIScrollView?
     private var memberShipScrollView: UIScrollView?
     private var messageTableView: UITableView?
-    private var messageList: [MessageModel] = []
+    private var messageList: [Message] = []
     private var bottomBackView: UIView?
     private var buddiesInputView : BuddiesInputView?
     private var isReceivingScreenShare: Bool = false
+    public var roomModel : RoomModel?
     
     // MARK: - Life Circle
     init(callee: Contact, uuid: UUID? = nil, callkit: CXProvider? = nil) {
@@ -75,14 +77,18 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         self.callee = callee
         self.uuid = uuid
         self.callkit = callkit
+        if let group = User.CurrentUser.getSingleGroupWithContactEmail(email: callee.email){
+            self.roomModel = User.CurrentUser.findLocalRoomWithId(localGroupId: group.groupId!)
+        }
         super.init(nibName: nil, bundle: nil);
     }
     
     init(room: RoomModel, uuid: UUID? = nil, callkit: CXProvider? = nil){
-        self.isGroupCall = true
+        self.isGroupCall = room.type == RoomType.group ? true : false
         self.callee = Contact(id: "", name: room.title!, email: room.roomId)
         self.uuid = uuid
         self.callkit = callkit
+        self.roomModel = room
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -90,43 +96,70 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         self.setNeedsStatusBarAppearanceUpdate();
         self.view.backgroundColor = UIColor.MKColor.BlueGrey.P700
         self.setUpSubViews()
+        NotificationCenter.default.addObserver(self, selector: #selector(applicationWillEnterForeground(notification:)), name: NSNotification.Name.UIApplicationWillEnterForeground, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(applicationWillEnterForeground(notification:)), name: NSNotification.Name(rawValue: CallReceptionNotification), object: nil)
     }
-    override func viewWillAppear(_ animated: Bool) {
-        /* removed by call View controller manage will case broblems 1.5.0*/
-//        NotificationCenter.default.addObserver(self, selector: #selector(messageNotiReceived(noti:)), name: NSNotification.Name(rawValue: MessageReceptionNotificaton), object: nil)
+    override func viewWillDisappear(_ animated: Bool) {
+        if let buddiesInputView = self.buddiesInputView{
+            buddiesInputView.selectedAssetCollectionView?.removeFromSuperview()
+        }
     }
-
+    
+    @objc func applicationWillEnterForeground(notification: NSNotification){
+        if self.currentCall != nil && self.currentCall?.videoRenderViews == nil{
+            self.currentCall?.videoRenderViews = (local :self.localVideoView!,remote : self.remoteVideoView!)
+            self.currentCall?.sendingVideo = true
+            self.currentCall?.receivingVideo = true
+            self.muteVideoBtn?.tintColor = UIColor.white
+        }
+    }
+    
     // MARK: - SparkSDK: beginVideoCall
-    func beginVideoCall(){
+    func beginCall(isVideo: Bool){
         KTActivityIndicator.singleton.show(title: "Connecting..")
         /* check if user's phone is registerd with Cisco could */
         if(User.CurrentUser.phoneRegisterd){
-            self.dialCall()
+            self.dialCall(isVideo: isVideo)
         }else{
-            SparkSDK?.phone.register({ (_ error) in
-                if(error == nil){
-                    User.CurrentUser.phoneRegisterd = true
-                    self.dialCall()
-                }else{
-                    KTActivityIndicator.singleton.hide()
-                    self.disMissVC(error)
-                }
-            })
+            self.disMissVC()
         }
     }
     
-    private func dialCall(){
-        SparkSDK?.phone.dial(self.callee.email, option:  MediaOption.audioVideoScreenShare(video: (self.localVideoView!, self.remoteVideoView!), screenShare: self.screenShareView!)) { result in
-            KTActivityIndicator.singleton.hide()
-            switch result {
-            case .success(let call):
-                self.callStateChangeCallBacks(call: call)
-            case .failure(let error):
-                self.disMissVC(error)
+    private func dialCall(isVideo: Bool){
+        var mediaOption : MediaOption
+        if isVideo{
+            mediaOption = MediaOption.audioVideoScreenShare(video: (self.localVideoView!, self.remoteVideoView!))
+        }else{
+            mediaOption = MediaOption.audioOnly()
+        }
+        if let room = self.roomModel{
+            if room.type == RoomType.direct {
+                SparkSDK?.phone.dial(room.localGroupId, option:  mediaOption) { result in
+                    KTActivityIndicator.singleton.hide()
+                    switch result {
+                    case .success(let call):
+                        self.currentCall = call
+                        self.callStateChangeCallBacks(call: call)
+                    case .failure(let error):
+                        self.disMissVC(error)
+                    }
+                }
+            }else{
+                if let roomId = self.roomModel?.roomId{
+                    SparkSDK?.phone.dial(roomId, option:  mediaOption) { result in
+                        KTActivityIndicator.singleton.hide()
+                        switch result {
+                        case .success(let call):
+                            self.currentCall = call
+                            self.callStateChangeCallBacks(call: call)
+                        case .failure(let error):
+                            self.disMissVC(error)
+                        }
+                    }
+                }
             }
         }
     }
-    
     
     // MARK: - SparkSDK: asnwerNewIncoming call /
     func answerNewIncomingCall(call: Call, callKitAction: CXAction){
@@ -156,11 +189,12 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     
     
     private func answerCall(_ call: Call, _ answerAction: CXAction){
+        self.currentCall = call
         KTActivityIndicator.singleton.hide()
         self.timer?.invalidate()
         self.timer = nil
         self.startTime = nil
-        call.answer(option:   MediaOption.audioVideoScreenShare(video: (local :self.localVideoView!,remote : self.remoteVideoView!), screenShare: self.screenShareView)) { error in
+        call.answer(option: MediaOption.audioVideo()) { error in
             if let error = error{
                 self.disMissVC(error)
             }else{
@@ -181,7 +215,6 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     
     // MARK: - SparkSDK: call state change processing code here...
     private func callStateChangeCallBacks(call: Call) {
-        self.currentCall = call
         self.memberShipList = call.memberships
         /* Callback when remote participant(s) answered and this *call* is connected. */
         call.onConnected = { [weak self] in
@@ -214,6 +247,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
             default:
                 break
             }
+            
             self?.endCall(call, reasonStr)
         }
         /* Callback when the media types of this *call* have changed. */
@@ -242,8 +276,6 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
                 break
             case .receivingAudio:
                 break
-            case .receivingAudio:
-                break
             case .receivingScreenShare:
                 break
             case .remoteSendingScreenShare(let isSending):
@@ -260,7 +292,6 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
                 switch memberShipChangeType {
                     /* This might be triggered when membership joined the call */
                 case .joined(let memberShip):
-                    
                     print("memberShip=======>\(memberShip.email!) joined")
                     self?.updateMemberShipView(membership: memberShip)
                     break
@@ -321,44 +352,22 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         }
     }
 
-    /* removed by call View controller manage will case broblems 1.5.0*/
-    // MARK: - SparkSDK: handle receiving message in a call
-//    func messageNotiReceived(noti: Notification){
-//        let paramDict = noti.object as! Dictionary<String, String>
-//        let fromEmail = paramDict["from"]
-//
-//        /* blocked by notification only contains email, but not a room id*/
-//        if let localGroup = User.CurrentUser.getSingleGroupWithContactEmail(email: fromEmail!){
-//            if let localRoom = User.CurrentUser.findLocalRoomWithId(localGroupId: localGroup.groupId!){
-//                self.requestRecivedMessages(localRoom)
-//            }
-//        }
-//    }
-//    func requestRecivedMessages(_ roomModel: RoomModel){
-//        SparkSDK?.messages.list(roomId: (roomModel.roomId), max: 1, queue: nil, completionHandler: { (response: ServiceResponse<[Message]>) in
-//            switch response.result {
-//            case .success(let value):
-//                print(value)
-//                for message in value{
-//                    let msgModel = MessageModel(message: message)
-//                    msgModel?.messageState = MessageState.received
-//                    msgModel?.localGroupId = roomModel.localGroupId
-//                    if(msgModel?.text == nil){
-//                        msgModel?.text = ""
-//                    }
-//                    self.messageList.append(msgModel!)
-//                }
-//                self.messageTableView?.reloadData()
-//                if(self.messageList.count > 0){
-//                    let indexPath = IndexPath(row: self.messageList.count-1, section: 0)
-//                    self.messageTableView?.scrollToRow(at: indexPath, at: .bottom, animated: true)
-//                }
-//                break
-//            case .failure:
-//                break
-//            }
-//        })
-//    }
+    // MARK: - SparkSDK: receive a new message
+    public func receiveNewMessage(message: MessageModel){
+        if let _ = self.messageList.filter({$0.messageId == message.id}).first{
+            return
+        }
+        let msgModel = Message(messageModel: message)
+        msgModel?.messageState = MessageState.received
+        msgModel?.localGroupId = self.roomModel?.localGroupId
+        if(msgModel?.text == nil){
+            msgModel?.text = ""
+        }
+        self.messageList.append(msgModel!)
+        let indexPath = IndexPath(row: self.messageList.count-1, section: 0)
+        self.messageTableView?.reloadData()
+        self.messageTableView?.scrollToRow(at: indexPath, at: .bottom, animated: false)
+    }
     
     
     // MARK: - UI Imeplementation
@@ -541,7 +550,14 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
                 self.endCall(self.currentCall!, "Hang Up")
             case .muteVideo:
                 if let call = self.currentCall {
-                    call.sendingVideo = !call.sendingVideo
+                    if call.videoRenderViews == nil{
+                        self.currentCall?.videoRenderViews = (local :self.localVideoView!,remote : self.remoteVideoView!)
+                        self.currentCall?.sendingVideo = true
+                        self.currentCall?.receivingVideo = true
+                        call.sendingVideo = true
+                    }else{
+                        call.sendingVideo = !call.sendingVideo
+                    }
                     self.muteVideoBtn?.tintColor = call.sendingVideo ? UIColor.white : UIColor.gray
                 }
             case .muteVoice:
@@ -571,6 +587,9 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
             if self.currentCall?.status == .connected {
                 self.muteVideoBtn?.isEnabled = true
                 self.muteVoiceBtn?.isEnabled = true
+                if(self.currentCall?.videoRenderViews == nil){
+                    self.muteVideoBtn?.tintColor = UIColor.gray
+                }
                 self.switchCameraBtn?.isEnabled = true
                 self.messageBtn?.isEnabled = true
                 self.backScrollView?.isScrollEnabled = true
@@ -598,7 +617,9 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     
     private func setUpMessageTableView(){
         if(self.messageTableView == nil){
-            self.messageTableView = UITableView(frame: CGRect(Int(Constants.Size.screenWidth*2),Int(messageTableViewHeight*3-154),Int(Constants.Size.screenWidth),Int(messageTableViewHeight)))
+            let inputViewY = Constants.Size.navHeight > 64 ? (Constants.Size.screenHeight - 188) : (Constants.Size.screenHeight - 154)
+            let Y = (inputViewY - messageTableViewHeight)
+            self.messageTableView = UITableView(frame: CGRect(Int(Constants.Size.screenWidth*2),Int(Y),Int(Constants.Size.screenWidth),Int(messageTableViewHeight)))
             self.messageTableView?.separatorStyle = .none
             self.messageTableView?.backgroundColor = UIColor.clear
             self.messageTableView?.delegate = self
@@ -609,9 +630,11 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     
     private func setUpBottomView(){
         let bottomViewWidth = Constants.Size.screenWidth*2
-        self.buddiesInputView = BuddiesInputView(frame:  CGRect(x: bottomViewWidth, y: Constants.Size.screenHeight-154, width: bottomViewWidth, height: 40) , tableView: self.messageTableView!)
-        self.buddiesInputView?.sendBtnClickBlock = { (textStr: String) in
-            self.sendMessage(text: textStr)
+        let Y = Constants.Size.navHeight > 64 ? (Constants.Size.screenHeight - 188) : (Constants.Size.screenHeight - 154)
+        self.buddiesInputView = BuddiesInputView(frame:  CGRect(x: bottomViewWidth, y:Y, width: bottomViewWidth, height: 40) , tableView: self.messageTableView!)
+        self.buddiesInputView?.isInputViewInCall = true
+        self.buddiesInputView?.sendBtnClickBlock = { (textStr: String, assetList:[BDAssetModel]?, mentionList:[Contact]?) in
+            self.sendMessage(text: textStr, assetList, mentionList)
         }
         self.backScrollView?.addSubview(self.buddiesInputView!)
     }
@@ -651,67 +674,109 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     }
     
     // MARK: Page Logic Iplementation
-    func sendMessage(text: String){
-        if(text.length == 0){
-            return
-        }
-        let tempMessageModel = MessageModel()
-        
-        if(self.isGroupCall){
-            tempMessageModel.roomId = callee.email
-        }else{
-            tempMessageModel.roomId = User.CurrentUser.findLocalRoomWithId(localGroupId: callee.email.md5)?.roomId
-        }
+    // MARK: - SparkSDK: post message current room
+    func sendMessage(text: String, _ assetList:[BDAssetModel]? = nil , _ mentionList:[Contact]? = nil){
+        let tempMessageModel = Message()
+        tempMessageModel.roomId = self.roomModel?.roomId
         tempMessageModel.messageState = MessageState.willSend
-        tempMessageModel.personId = User.CurrentUser.id
-        tempMessageModel.personEmail = EmailAddress.fromString( User.CurrentUser.email)
         tempMessageModel.text = text
-        tempMessageModel.localGroupId = callee.email.md5
-        tempMessageModel.toPersonEmail = EmailAddress.fromString(callee.email)
-        
-        self.messageList.append(tempMessageModel)
-        self.messageTableView?.insertRows(at: [IndexPath(row: self.messageList.count-1, section: 0)], with: .bottom)
-        self.buddiesInputView?.inputTextView?.text = ""
-        let indexPath = IndexPath(row: self.messageList.count-1, section: 0)
-        self.messageTableView?.scrollToRow(at: indexPath, at: .bottom, animated: true)
+        if self.roomModel?.type == RoomType.direct{
+            if let personEmail = self.roomModel?.roomMembers![0].email,
+                let personId = self.roomModel?.roomMembers![0].id{
+                tempMessageModel.toPersonEmail = EmailAddress.fromString(personEmail)
+                tempMessageModel.toPersonId = personId
+            }
+        }
+        tempMessageModel.personId = User.CurrentUser.id
+        tempMessageModel.personEmail = EmailAddress.fromString(User.CurrentUser.email)
+        tempMessageModel.localGroupId = self.roomModel?.localGroupId
+        if let mentions = mentionList, mentions.count>0{
+            var mentionModels : [MessageMentionModel] = []
+            for mention in mentions{
+                if mention.name == "ALL"{
+                    mentionModels.append(MessageMentionModel.createGroupMentionItem())
+                }else{
+                    mentionModels.append(MessageMentionModel.createPeopleMentionItem(personId: mention.id))
+                }
+            }
+            tempMessageModel.mentionList = mentionModels
+        }
+        if let models = assetList, models.count>0{
+            var files : [FileObjectModel] = []
+            tempMessageModel.fileNames = []
+            let manager = PHImageManager.default()
+            let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
+            var loadedCount = 0
+            let requestOptions = PHImageRequestOptions()
+            requestOptions.resizeMode = .exact
+            requestOptions.deliveryMode = .highQualityFormat
+            for index in 0..<models.count{
+                let asset = models[index].asset
+                manager.requestImage(for: asset, targetSize: CGSize(width: asset.pixelWidth/4, height: asset.pixelHeight/4), contentMode: .aspectFill, options: requestOptions) { (result, info) in
+                    let date : Date = Date()
+                    let dateFormatter = DateFormatter()
+                    dateFormatter.dateFormat = "MMMddyyyy:hhmmSSS"
+                    let todaysDate = dateFormatter.string(from: date)
+                    let name = "Image-" + todaysDate + ".jpg"
+                    let destinationPath = documentsPath + "/" + name
+                    loadedCount += 1
+                    if let data = UIImageJPEGRepresentation(result!, 1.0){
+                        do{
+                            try data.write(to: URL(fileURLWithPath: destinationPath))
+                            let tempFile = FileObjectModel(name:name, localFileUrl: destinationPath)
+                            let thumbFile = ThumbNailImageModel(localFileUrl: destinationPath,width: Int((result?.size.width)!), height : Int((result?.size.height)!))
+                            tempFile.image = thumbFile
+                            tempFile.fileType = FileType.Image
+                            files.append(tempFile)
+                            tempMessageModel.fileNames?.append(name)
+                            if loadedCount == models.count{
+                                tempMessageModel.files = files
+                                self.postMessage(message: tempMessageModel)
+                            }
+                        }catch let error as NSError{
+                            print("Write File Error:" + error.description)
+                        }
+                    }
+                }
+            }
+        }else{
+            self.postMessage(message: tempMessageModel)
+        }
         return
+    }
+    func postMessage(message: Message){
+        self.messageList.append(message)
+        let indexPath = IndexPath(row: self.messageList.count-1, section: 0)
+        self.messageTableView?.reloadData()
+        _ = self.messageTableView?.cellForRow(at: indexPath)
+        self.messageTableView?.scrollToRow(at: indexPath, at: .bottom, animated: false)
+        self.buddiesInputView?.inputTextView?.text = ""
     }
     
     private func disMissVC( _ error: Error? = nil, _ reasonString: String? = nil){
+        KTActivityIndicator.singleton.hide()
         if let reason = reasonString{
             KTActivityIndicator.singleton.show(title: reason + "..")
         }else{
             KTActivityIndicator.singleton.show(title: "Disconnecting..")
         }
-        
-        if(User.CurrentUser.phoneRegisterd){
-            SparkSDK?.phone.deregister({ (error) in
-                KTActivityIndicator.singleton.hide()
-                User.CurrentUser.phoneRegisterd = false
-                self.dismiss(animated: true) {}
-                if let error = error {
-                    KTInputBox.alert(error: error)
-                }
-            })
-        }else{
+        let deadlineTime = DispatchTime.now() + .seconds(1)
+        DispatchQueue.main.asyncAfter(deadline: deadlineTime) {
             KTActivityIndicator.singleton.hide()
-            self.dismiss(animated: true) {}
-            if let error = error {
-                KTInputBox.alert(error: error)
-            }
+            self.dismiss(animated: true, completion: {})
         }
     }
     
     // MARK: UITableViewDataSource
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        
         var fileCount = 0
+        var imageCount = 0
         if(self.messageList[indexPath.row].files != nil){
-            fileCount = (self.messageList[indexPath.row].files?.count)!
+            imageCount = (self.messageList[indexPath.row].files?.filter({$0.fileType == FileType.Image}).count)!
+            fileCount = (self.messageList[indexPath.row].files?.filter({$0.fileType != FileType.Image}).count)!
         }
-        let cellHeight = MessageTableCell.getCellHeight(text: self.messageList[indexPath.row].text!, imageCount: fileCount)
+        let cellHeight = MessageTableCell.getCellHeight(text: self.messageList[indexPath.row].text!, imageCount: imageCount, fileCount: fileCount)
         return cellHeight
-        
     }
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return self.messageList.count
@@ -719,12 +784,12 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let index = indexPath.row
-        let messageModel = self.messageList[index]
+        let message = self.messageList[index]
         var reuseCell = tableView.dequeueReusableCell(withIdentifier: "MessageTableCell")
         if reuseCell != nil{
             //                (reuseCell as! PeopleListTableCell).updateMembershipCell(newMemberShipModel: memberModel)
         }else{
-            reuseCell = MessageTableCell(messageModel: messageModel)
+            reuseCell = MessageTableCell(message: message)
         }
         return reuseCell!
     }
@@ -871,6 +936,7 @@ class CallMemberShipView: UIView{
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
 }
 
 
