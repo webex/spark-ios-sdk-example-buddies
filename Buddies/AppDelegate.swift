@@ -138,65 +138,40 @@ class AppDelegate: UIResponder, UIApplicationDelegate, PKPushRegistryDelegate {
     }
     
     func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable: Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-
-        
+        /* first receive message notification */
         let dict = userInfo["aps"] as? Dictionary<String, AnyObject>
         let alert = dict?["alert"] as? Dictionary<String, AnyObject>
-        let idStr = dict?["body"] as? String
+        let email = alert?["body"] as? String
+        let title = alert?["title"] as? String
+
         let state = UIApplication.shared.applicationState
-        guard let home = self.rootController, let id = idStr else{return}
-        if state == .active {
-            if(!User.loadUserFromLocal() || User.CurrentUser.loginType == .None){
-                return
-            }else{
-                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: CallReceptionNotification), object: nil)
+        if state != .active {
+            if(User.loadUserFromLocal()){
+                if let localGroup = User.CurrentUser.getSingleGroupWithContactEmail(email: email!){
+                    localGroup.unReadedCount += 1
+                }
             }
         }else{
-            if(User.loadUserFromLocal() && User.CurrentUser.loginType != .None){
-                if !User.CurrentUser.phoneRegisterd{
-                    home.registerPhone()
-                }else{
-                    home.receiveIncomingCall(from: id)
+            if(User.CurrentUser.loginType != .None){
+                if let localGroup = User.CurrentUser.getSingleGroupWithContactEmail(email: email!){
+                    localGroup.unReadedCount += 1
                 }
             }
         }
-        
-//        /* first receive message notification */
-//        let dict = userInfo["aps"] as? Dictionary<String, AnyObject>
-//        let alert = dict?["alert"] as? Dictionary<String, AnyObject>
-//        let email = alert?["body"] as? String
-//        let title = alert?["title"] as? String
-//
-//
-//        let state = UIApplication.shared.applicationState
-//        if state != .active {
-//            if(User.loadUserFromLocal()){
-//                if let localGroup = User.CurrentUser.getSingleGroupWithContactEmail(email: email!){
-//                    localGroup.unReadedCount += 1
-//                }
-//            }
-//        }else{
-//            if(User.CurrentUser.loginType != .None){
-//                if let localGroup = User.CurrentUser.getSingleGroupWithContactEmail(email: email!){
-//                    localGroup.unReadedCount += 1
-//                }
-//            }
-//        }
-//
-//        if(title == "New Message"){
-//            if let home = self.rootController, let email = email {
-//                if email != User.CurrentUser.email{
-//                    home.receviMessageNotification(fromEmail: email)
-//                }
-//            }
-//        }
+
+        if(title == "New Message"){
+            if let home = self.rootController, let email = email {
+                if email != User.CurrentUser.email{
+                    home.receviMessageNotification(fromEmail: email)
+                }
+            }
+        }
     }
 
     func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, forType type: PKPushType) {
         
         /* first receive voip/call notification */
-        
-        let dict = payload.dictionaryPayload["aps"] as? Dictionary<String, AnyObject>
+        let dict =  payload.dictionaryPayload["aps"] as? Dictionary<String, AnyObject>
         let alert = dict?["alert"] as? Dictionary<String, AnyObject>
         let idStr = alert?["body"] as? String
         let state = UIApplication.shared.applicationState
@@ -204,6 +179,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, PKPushRegistryDelegate {
         if state == .active {
             if(!User.loadUserFromLocal() || User.CurrentUser.loginType == .None){
                 return
+            }else{
+                NotificationCenter.default.post(name: NSNotification.Name(rawValue: CallReceptionNotification), object: nil)
             }
         }else{
             if(User.loadUserFromLocal() && User.CurrentUser.loginType != .None){
