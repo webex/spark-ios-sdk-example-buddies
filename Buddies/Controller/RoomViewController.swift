@@ -72,7 +72,7 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
     }
     // MARK: - SparkSDK: listing member in a room
     func requestMessageList(){
-        if let roomId = self.roomModel?.roomId{
+        if let roomId = self.roomModel?.roomId , roomId != "" {
             self.topIndicator?.startAnimating()
             SparkSDK?.messages?.list(roomId: roomId,completionHandler: { (response: ServiceResponse<[MessageModel]>) in
                 self.topIndicator?.stopAnimating()
@@ -96,6 +96,8 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
                     break
                 }
             })
+        }else{
+            self.updateNavigationTitle()
         }
     }
     

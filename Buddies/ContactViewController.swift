@@ -57,12 +57,9 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
     // MARK: - SparkSDK: Phone Register And Setup Message-Receive Call Back
     public func checkSparkRegister(){
         if(User.CurrentUser.phoneRegisterd){
-            self.processReceiveMessages()
-        }
-    }
-    public func processReceiveMessages(){
-        SparkSDK?.messages?.onMessage = { message in
-            self.receiveNewMessage(message)
+            SparkSDK?.messages?.onMessage = { message in
+                self.receiveNewMessage(message)
+            }
         }
     }
 
@@ -230,7 +227,7 @@ class ContactViewController: BaseViewController, UICollectionViewDataSource, UIC
     public func receiveNewMessage( _ messageModel: MessageModel){
         if messageModel.roomType == RoomType.direct{//GROUP
             if let roomVC = self.roomVC, let roomModel = self.roomVC?.roomModel{
-                if messageModel.personEmail?.md5 == roomModel.localGroupId{
+                if messageModel.personEmail == roomModel.localGroupId{
                     roomVC.receiveNewMessage(message: messageModel)
                     return
                 }

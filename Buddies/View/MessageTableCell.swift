@@ -257,7 +257,8 @@ class MessageTableCell: UITableViewCell {
             
             if(self.message.roomId == nil || self.message.roomId?.length == 0){
                 DispatchQueue.global().async {
-                    SparkSDK?.messages?.post(email: (self.message.toPersonEmail?.toString())!, text: (self.message.text!),completionHandler: { (response: ServiceResponse<MessageModel>) in
+                    let emailStr = User.CurrentUser.loginType == UserLoginType.User ? (self.message.toPersonEmail?.toString())! : self.message.localGroupId
+                    SparkSDK?.messages?.post(email: emailStr!, text: (self.message.text!),completionHandler: { (response: ServiceResponse<MessageModel>) in
                         self.messageIndicator?.stopAnimating()
                         switch response.result {
                         case .success(let value):

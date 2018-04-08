@@ -21,7 +21,7 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
     private var financialAdPTF: MKTextField?
     private var customerCareTF: MKTextField?
     private var addedEmailDict: Dictionary<String,String>?
-    
+    private var roomVC : RoomViewController?
     
     // MARK : Life Circle
     override func viewDidLoad() {
@@ -31,21 +31,15 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
             self.title = "Guest Experience"
         }
         super.viewDidLoad()
+        self.checkSparkRegister()
         self.updateBarItem()
         self.setUpSubViews()
-    }
-
-    override func viewWillAppear(_ animated: Bool) {
-        NotificationCenter.default.addObserver(self, selector: #selector(messageNotiReceived(noti:)), name: NSNotification.Name(rawValue: MessageReceptionNotificaton), object: nil)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         NotificationCenter.default.removeObserver(self)
     }
-    
-    func messageNotiReceived(noti: Notification){
-        self.updateUnreadedLabels()
-    }
+
     
     // MARK: - UI Implementation
     private func updateBarItem() {
@@ -371,6 +365,14 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
         }
     }
     
+    public func checkSparkRegister(){
+        if(User.CurrentUser.phoneRegisterd){
+            SparkSDK?.messages?.onMessage = { message in
+                self.receiveNewMessage(message)
+            }
+        }
+    }
+    
     // MARK: - UI Logic Implementation
     @objc private func dismissVC(){
         self.healthcareProTF?.resignFirstResponder()
@@ -465,19 +467,25 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
         group.unReadedCount = 0
         if let roomModel = User.CurrentUser.findLocalRoomWithId(localGroupId: localGroupId!){
             roomModel.title = localRoomName!
-            let roomVC = RoomViewController(room: roomModel)
-            self.navigationController?.pushViewController(roomVC, animated: true)
+            roomModel.roomMembers = [Contact]()
+            for contact in group.groupMembers{
+                roomModel.roomMembers?.append(contact)
+            }
+            self.roomVC = RoomViewController(room: roomModel)
+            self.navigationController?.pushViewController(self.roomVC!, animated: true)
         }else{
             if(group.groupType == .singleMember){
                 let createdRoom = RoomModel(roomId: "")
                 createdRoom.localGroupId = group.groupId!
                 createdRoom.title = localRoomName!
+                createdRoom.type = RoomType.direct
+                createdRoom.roomMembers = [Contact]()
                 for contact in group.groupMembers{
                     createdRoom.roomMembers?.append(contact)
                 }
                 User.CurrentUser.insertLocalRoom(room: createdRoom, atIndex: 0)
-                let roomVC = RoomViewController(room: createdRoom)
-                self.navigationController?.pushViewController(roomVC, animated: true)
+                self.roomVC = RoomViewController(room: createdRoom)
+                self.navigationController?.pushViewController(self.roomVC!, animated: true)
                 return
             }
             
@@ -487,6 +495,12 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
                 case .success(let value):
                     if let createdRoom = RoomModel(room: value){
                         createdRoom.localGroupId = localGroupId!
+                        group.groupId = createdRoom.roomId
+                        createdRoom.localGroupId = createdRoom.roomId
+                        createdRoom.title = localRoomName
+                        createdRoom.type = RoomType.group
+                        createdRoom.roomMembers = [Contact]()
+                        group.groupId = createdRoom.roomId
                         let threahGroup = DispatchGroup()
                         for contact in group.groupMembers{
                             DispatchQueue.global().async(group: threahGroup, execute: DispatchWorkItem(block: {
@@ -523,6 +537,23 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
             })
         }
 
+    }
+    
+    
+    public func receiveNewMessage( _ messageModel: MessageModel){
+        if messageModel.roomType == RoomType.direct{//GROUP
+            if let roomVC = self.roomVC, let roomModel = self.roomVC?.roomModel{
+                if messageModel.personEmail == roomModel.localGroupId{
+                    roomVC.receiveNewMessage(message: messageModel)
+                    return
+                }
+            }else{
+                if let group = User.CurrentUser.getSingleGroupWithContactEmail(email: messageModel.personEmail!){
+                    group.unReadedCount += 1
+                    self.updateUnreadedLabels()
+                }
+            }
+        }
     }
     
     override func didReceiveMemoryWarning() {
