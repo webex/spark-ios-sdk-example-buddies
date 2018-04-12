@@ -332,6 +332,7 @@ class KTInputBox: UIView, UITextFieldDelegate {
         return height;
     }
     
+    @objc
     func cancelButtonTapped () {
         if self.onCancel != nil {
             self.onCancel()
@@ -339,7 +340,7 @@ class KTInputBox: UIView, UITextFieldDelegate {
         self.hide()
     }
     
-    func submitButtonTapped () {
+    @objc func submitButtonTapped () {
         if let block = self.onSubmit {
             let values:[String] = self.elements.flatMap { element in
                 if let textField = element as? UITextField {
@@ -356,6 +357,7 @@ class KTInputBox: UIView, UITextFieldDelegate {
         }
     }
     
+    @objc
     func middleButtonTapped(button:UIButton) {
         if let block = self.onMiddle {
             if block(button) {
@@ -386,6 +388,7 @@ class KTInputBox: UIView, UITextFieldDelegate {
     }
     
     // MARK: Keyboard Changes
+    @objc
     func keyboardDidShow (notification: NSNotification) {
         if let superview = self.superview {
             let keyboardFrame = self._keyboardFrame(noti: notification);
@@ -406,7 +409,7 @@ class KTInputBox: UIView, UITextFieldDelegate {
             self._animate(notification);
         }
     }
-    
+    @objc
     func keyboardDidHide (notification: NSNotification) {
         if let _ = self.superview {
             constrain(self, replace: self._group) { view in

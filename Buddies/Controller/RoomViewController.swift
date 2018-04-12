@@ -89,6 +89,7 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
                     self.messageTableView?.reloadData()
                     let indexPath = IndexPath(row: self.messageList.count-1, section: 0)
                     if self.messageList.count != 0{
+                        _ = self.messageTableView?.cellForRow(at: indexPath)
                         self.messageTableView?.scrollToRow(at: indexPath, at: .bottom, animated: false)
                     }
                     break
@@ -171,7 +172,7 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
                             try data.write(to: URL(fileURLWithPath: destinationPath))
                             let tempFile = FileObjectModel(name:name, localFileUrl: destinationPath)
                             let thumbFile = ThumbNailImageModel(localFileUrl: destinationPath,width: Int((result?.size.width)!), height : Int((result?.size.height)!))
-                            tempFile.image = thumbFile
+                            tempFile.thumb = thumbFile
                             tempFile.fileType = FileType.Image
                             files.append(tempFile)
                             tempMessageModel.fileNames?.append(name)
@@ -222,6 +223,7 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
         self.messageList.append(msgModel!)
         let indexPath = IndexPath(row: self.messageList.count-1, section: 0)
         self.messageTableView?.reloadData()
+        _ = self.messageTableView?.cellForRow(at: indexPath)
         self.messageTableView?.scrollToRow(at: indexPath, at: .bottom, animated: false)
         if let callVc = self.callVC{
             callVc.receiveNewMessage(message: message)

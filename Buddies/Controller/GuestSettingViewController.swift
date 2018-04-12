@@ -259,9 +259,9 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
         let paragraph = NSMutableParagraphStyle()
         paragraph.alignment = .right
         let attStringSaySomething1 = NSAttributedString.init(string: "Configuration",
-                                                             attributes: [NSFontAttributeName: Constants.Font.NavigationBar.Button, NSForegroundColorAttributeName:Constants.Color.Theme.Main,
-                                                                          NSUnderlineStyleAttributeName: NSUnderlineStyle.styleSingle.rawValue,
-                                                                          NSParagraphStyleAttributeName: paragraph])
+                                                             attributes: [NSAttributedStringKey.font: Constants.Font.NavigationBar.Button, NSAttributedStringKey.foregroundColor:Constants.Color.Theme.Main,
+                                                                          NSAttributedStringKey.underlineStyle: NSUnderlineStyle.styleSingle.rawValue,
+                                                                          NSAttributedStringKey.paragraphStyle: paragraph])
         
         settingBtn.setAttributedTitle(attStringSaySomething1, for: .normal)
         settingBtn.addTarget(self, action: #selector(setUpConfiguartionView), for: .touchUpInside)
@@ -295,6 +295,7 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
     
     
     // MARK: - SparkSDK: JWT Authentication Implementation
+    @objc
     func authenticateWithJWT(){
         
         self.addedEmailDict = Dictionary()
@@ -444,6 +445,7 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
     }
     
     // MARK: SparkSDK CALL/Message Function Implementation
+    @objc
     public func makeSparkCall(sender: UIButton){
         let index = sender.tag - 20000
         let group = User.CurrentUser[index]!
@@ -456,7 +458,7 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
         }
     }
 
-    public func makeSaprkMessage(sender: UIButton){
+    @objc public func makeSaprkMessage(sender: UIButton){
         let index = sender.tag - 20000
         let group = User.CurrentUser[index]!
         let localRoomName = group.groupName

@@ -43,9 +43,9 @@ extension String {
     
     func base64Decoded() -> String? {
         var encoded64 = self
-        let remainder = encoded64.characters.count % 4
+        let remainder = encoded64.count % 4
         if remainder > 0 {
-            encoded64 = encoded64.padding(toLength: encoded64.characters.count + 4 - remainder, withPad: "=", startingAt: 0)
+            encoded64 = encoded64.padding(toLength: encoded64.count + 4 - remainder, withPad: "=", startingAt: 0)
         }
         if let data = Data(base64Encoded: encoded64) {
             return String(data: data, encoding: .utf8)
@@ -54,7 +54,7 @@ extension String {
     }
     
     var length: Int {
-        return self.characters.count;
+        return self.count;
     }
     
     subscript (i: Int) -> Character? {
@@ -76,7 +76,7 @@ extension String {
             return nil
         }
         let range = self.index(startIndex, offsetBy: range.lowerBound) ..< self.index(startIndex, offsetBy: range.upperBound)
-        return self[range];
+        return String(self[range]);
     }
     
     func index(from: Int) -> Index {
@@ -85,18 +85,18 @@ extension String {
     
     func substring(from: Int) -> String {
         let fromIndex = index(from: from)
-        return substring(from: fromIndex)
+        return String(self[fromIndex...])
     }
     
     func substring(to: Int) -> String {
         let toIndex = index(from: to)
-        return substring(to: toIndex)
+        return String(self[..<toIndex])
     }
     
     func substring(with r: Range<Int>) -> String {
         let startIndex = index(from: r.lowerBound)
         let endIndex = index(from: r.upperBound)
-        return substring(with: startIndex..<endIndex)
+        return String(self[startIndex..<endIndex])
     }
     
     var md5: String! {
@@ -118,14 +118,14 @@ extension String {
     }
     
     func calculateSringHeight(width: Double, font : UIFont)->CGFloat{
-        let textAttributes = [NSFontAttributeName: font]
+        let textAttributes = [NSAttributedStringKey.font: font]
         let textRect = self.boundingRect(with: CGSize(Int(width), 3000), options: .usesLineFragmentOrigin, attributes: textAttributes, context: nil)
         return textRect.height
     }
     
     
     func calculateSringSize(width: Double, font : UIFont)->CGSize{
-        let textAttributes = [NSFontAttributeName: font]
+        let textAttributes = [NSAttributedStringKey.font: font]
         var textRect = self.boundingRect(with: CGSize(Int(width), 3000), options: .usesLineFragmentOrigin, attributes: textAttributes, context: nil)
         if(textRect.size.width < 30){
             textRect.size.width = 30

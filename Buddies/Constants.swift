@@ -164,7 +164,7 @@ class Constants {
         
         class Theme {
             
-            static let Main = UIColor(colorLiteralRed: 0.18, green: 0.67, blue: 0.84, alpha: 1)
+            static let Main = UIColor.init(red: 0.18, green: 0.67, blue: 0.84, alpha: 1)
             
             static let LightMain = UIColor.MKColor.LightBlue.P200
             

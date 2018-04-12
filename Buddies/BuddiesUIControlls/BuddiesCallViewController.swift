@@ -725,7 +725,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
                             try data.write(to: URL(fileURLWithPath: destinationPath))
                             let tempFile = FileObjectModel(name:name, localFileUrl: destinationPath)
                             let thumbFile = ThumbNailImageModel(localFileUrl: destinationPath,width: Int((result?.size.width)!), height : Int((result?.size.height)!))
-                            tempFile.image = thumbFile
+                            tempFile.thumb = thumbFile
                             tempFile.fileType = FileType.Image
                             files.append(tempFile)
                             tempMessageModel.fileNames?.append(name)

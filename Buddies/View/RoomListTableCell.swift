@@ -60,7 +60,6 @@ class RoomListTableCell: UITableViewCell {
         self.backView?.addSubview(titleLabel)
         
         let lastActLabel = UILabel(frame: CGRect(x: 15, y: viewHeight-20, width: Int(viewWidth-40), height: 20))
-        lastActLabel.text = roomModel?.lastActivity
         lastActLabel.textAlignment = .right
         lastActLabel.textColor = Constants.Color.Theme.MediumControl
         lastActLabel.font = Constants.Font.Home.Comment

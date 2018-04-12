@@ -37,8 +37,6 @@ class RoomModel: NSObject,NSCoding {
     
     var isLocked: Bool? = false
     
-    var lastActivity: String?
-    
     var teamId: String?
     
     var roomMembers: [Contact]?
@@ -72,9 +70,6 @@ class RoomModel: NSObject,NSCoding {
         if let teamId = room.teamId{
             self.teamId = teamId
         }
-        if let lastActivity = room.lastActivity{
-            self.lastActivity = lastActivity
-        }
     }
     public func encode(with aCoder: NSCoder){
         aCoder.encode(self.roomId, forKey: "RoomId")
@@ -89,9 +84,6 @@ class RoomModel: NSObject,NSCoding {
         if self.isLocked != nil{
             aCoder.encode(self.isLocked, forKey: "isLocked")
         }
-        if self.lastActivity != nil{
-            aCoder.encode(self.lastActivity, forKey: "lastActivity")
-        }
         if self.teamId != nil{
             aCoder.encode(self.teamId, forKey: "teamId")
         }
@@ -103,7 +95,6 @@ class RoomModel: NSObject,NSCoding {
         self.title = aDecoder.decodeObject(forKey: "title") as? String
         self.type = RoomType(rawValue: (aDecoder.decodeObject(forKey: "type") as? String)!)
         self.isLocked = aDecoder.decodeObject(forKey: "isLocked") as? Bool
-        self.lastActivity = aDecoder.decodeObject(forKey: "lastActivity") as? String
         self.teamId = aDecoder.decodeObject(forKey: "teamId") as? String
     }
     

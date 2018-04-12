@@ -212,21 +212,21 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
         }
     }
     
-    func audioCallBtnClicked(){
+    @objc func audioCallBtnClicked(){
         self.tableViewTapped()
         if let callBlock = self.audioCallBtnClickedBlock{
             callBlock()
         }
     }
     
-    func videoCallBtnClicked(){
+    @objc func videoCallBtnClicked(){
         self.tableViewTapped()
         if let callBlock = self.videoCallBtnClickedBlock{
             callBlock()
         }
     }
     
-    func mentionBtnClicked(){
+    @objc func mentionBtnClicked(){
         self.setUpMentionTableView()
     }
     
@@ -236,7 +236,7 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
     }
     
     // MARK: - KeyBoard Delegate Implementation
-    func keyBoardWillAppear(notification: Notification){
+    @objc func keyBoardWillAppear(notification: Notification){
         if(tableTap == nil){
             tableTap =  UITapGestureRecognizer(target: self, action: #selector(tableViewTapped))
         }
@@ -256,7 +256,7 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
         }
     }
     
-    func keyBoardWillDisappear(notification: Notification){
+    @objc func keyBoardWillDisappear(notification: Notification){
         if(tableTap != nil){
             self.tableView.removeGestureRecognizer(tableTap!)
         }

@@ -124,7 +124,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, PKPushRegistryDelegate {
     }
     
     // Get device token for voip push notification
-    func pushRegistry(_ registry: PKPushRegistry, didUpdate credentials: PKPushCredentials, forType type: PKPushType) {
+    func pushRegistry(_ registry: PKPushRegistry, didUpdate credentials: PKPushCredentials, for type: PKPushType) {
         let hex = credentials.token.map( {String(format: "%02x", $0) }).joined(separator: "")
         /* saving voip noti certificate date on local UserDefualt */
         UserDefaults.standard.set(hex, forKey: "com.cisco.spark-ios-sdk.Buddies.data.device_voip_token")
@@ -168,7 +168,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, PKPushRegistryDelegate {
         }
     }
 
-    func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, forType type: PKPushType) {
+    func pushRegistry(_ registry: PKPushRegistry, didReceiveIncomingPushWith payload: PKPushPayload, for: PKPushType) {
         
         /* first receive voip/call notification */
         let dict =  payload.dictionaryPayload["aps"] as? Dictionary<String, AnyObject>

@@ -29,7 +29,7 @@ let messageCellTextWidth = (Constants.Size.screenWidth - CGFloat(avatorHeight))/
 class MessageTableCell: UITableViewCell {
     
     // MARK: - UI variables
-    dynamic private var message: Message
+    @objc dynamic private var message: Message
     
     private var avatorImageView: UIImageView?
     
@@ -75,7 +75,6 @@ class MessageTableCell: UITableViewCell {
     
     private func setUpMessageCellSubViews(){
         if(self.avatorImageView == nil){
-            
             if(!isUser){
                 self.avatorImageView = UIImageView(frame: CGRect(x: 5, y: 10, width: avatorHeight, height: avatorHeight))
             }else{
@@ -185,13 +184,13 @@ class MessageTableCell: UITableViewCell {
                     self.addSubview(imageView)
                     
                     if file.fileType == FileType.Image{
-                        if file.image != nil{
-                            if let localPath = file.image?.localFileUrl{
+                        if file.thumb != nil{
+                            if let localPath = file.thumb?.localFileUrl{
                                 imageView.image = UIImage(contentsOfFile: localPath)
                             }else{
                                 SparkSDK?.messages?.downLoadThumbNail(roomId: self.message.roomId!, file: file, completionHandler: { (file: FileObjectModel,state: FileDownLoadState) in
                                     if state == .DownloadSuccess{
-                                        imageView.image = UIImage(contentsOfFile: (file.image?.localFileUrl!)!)
+                                        imageView.image = UIImage(contentsOfFile: (file.thumb?.localFileUrl!)!)
                                     }
                                 })
                             }
@@ -278,7 +277,6 @@ class MessageTableCell: UITableViewCell {
                 }
             }else{
                 DispatchQueue.global().async {
-                    
                     SparkSDK?.messages?.post(roomId: self.message.roomId!, text: (self.message.text!), mentions: self.message.mentionList, files: self.message.files, completionHandler: { (response: ServiceResponse<MessageModel>) in
                             self.messageIndicator?.stopAnimating()
                             switch response.result {
