@@ -497,9 +497,9 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
             view2.height == 48
             view3.width == 48
             view3.height == 48
-            view1.bottom == backView.bottom - 20 - 48 - 20
-            view2.bottom == backView.bottom - 20 - 48 - 20
-            view3.bottom == backView.bottom - 20 - 48 - 20
+            view1.bottom == backView.bottom - 88
+            view2.bottom == backView.bottom - 88
+            view3.bottom == backView.bottom - 88
         }
         
         self.setUpMessageTableView()
