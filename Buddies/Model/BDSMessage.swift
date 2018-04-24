@@ -30,10 +30,9 @@ enum MessageState : Int{
     case received
     case willSend
     case sendFailed
-    case sending
 }
 
-class Message: NSObject {
+class BDSMessage: NSObject {
 
     public var messageId: String?
     
@@ -45,7 +44,9 @@ class Message: NSObject {
     
     public var text: String?
     
-    public var files: [FileObjectModel]?
+    public var localFiles: [LocalFile]?
+    
+    public var remoteFiles: [BDSRemoteFile]?
     
     public var fileNames: [String]?
     
@@ -59,11 +60,11 @@ class Message: NSObject {
     
     public var localGroupId: String? //GroupId contain witch Room it is involved in
     
-    public var mentionList: [MessageMentionModel]?
+    public var mentionList: [Mention]?
     
     public var imageDataDict: Dictionary<String, Data>?
     
-    convenience init?(messageModel: MessageModel) {
+    convenience init?(messageModel: Message) {
         self.init()
         if let roomId = messageModel.roomId{
             self.roomId = roomId
@@ -84,7 +85,7 @@ class Message: NSObject {
             self.messageId = messageId
         }
         if let files = messageModel.files{
-            self.files = files
+            self.remoteFiles = [BDSRemoteFile]()
             self.fileNames = []
             for file in files{
                 if let fileName = file.displayName{
@@ -92,18 +93,47 @@ class Message: NSObject {
                 }else{
                     self.fileNames?.append("Unkwon")
                 }
+                let tempFile = BDSRemoteFile(remoteFile: file)
+                self.remoteFiles?.append(tempFile)
             }
         }
         if let toPersonId = messageModel.toPersonId{
             self.toPersonId = toPersonId
         }
         if let toPersonEmail = messageModel.toPersonEmail{
-            self.toPersonEmail = EmailAddress.fromString(toPersonEmail)
+            self.toPersonEmail = toPersonEmail
         }
         if let created = messageModel.created{
             self.created = created
         }
-        
+        self.messageState = MessageState.received
     }
-    
+}
+
+class BDSRemoteFile: NSObject{
+    public var displayName: String?{
+        get {
+            return self.remoteFile.displayName
+        }
+    }
+    public var mimeType: String?{
+        get {
+            return self.remoteFile.mimeType
+        }
+    }
+    public var size: UInt64?{
+        get {
+            return self.remoteFile.size
+        }
+    }
+    public  var thumbnail: RemoteFile.Thumbnail?{
+        get {
+            return self.remoteFile.thumbnail
+        }
+    }
+    public var remoteFile : RemoteFile
+    public var localUrl: String?
+    init(remoteFile: RemoteFile){
+        self.remoteFile = remoteFile
+    }
 }

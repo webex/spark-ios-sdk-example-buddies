@@ -116,7 +116,7 @@ extension String {
         
         return String(format: hash as String)
     }
-    
+        
     func calculateSringHeight(width: Double, font : UIFont)->CGFloat{
         let textAttributes = [NSAttributedStringKey.font: font]
         let textRect = self.boundingRect(with: CGSize(Int(width), 3000), options: .usesLineFragmentOrigin, attributes: textAttributes, context: nil)
@@ -132,7 +132,19 @@ extension String {
         }
         return textRect.size
     }
-
     
+    func getLineTrimedString() ->String{
+        var linesArray: [String] = []
+        self.enumerateLines { line, _ in linesArray.append(line) }
+        let result = linesArray.filter{!$0.isEmpty}.joined(separator: "\n")
+        return result
+    }
+    
+    func getEmptyLineCount() -> Int{
+        var linesArray: [String] = []
+        self.enumerateLines { line, _ in linesArray.append(line) }
+        let result = linesArray.filter{$0.isEmpty}.count
+        return result
+    }
  }
 

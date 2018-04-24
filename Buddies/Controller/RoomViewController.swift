@@ -31,7 +31,7 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
     private var roomMemberTableView: UITableView?
     private var maskView: UIView?
     private var roomMeberList: [Membership] = []
-    private var messageList: [Message] = []
+    private var messageList: [BDSMessage] = []
     private let messageTableViewHeight = Constants.Size.navHeight > 64 ? (Constants.Size.screenHeight-Constants.Size.navHeight-74) : (Constants.Size.screenHeight-Constants.Size.navHeight-40)
     private var tableTap: UIGestureRecognizer?
     private var topIndicator: UIActivityIndicatorView?
@@ -74,14 +74,14 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
     func requestMessageList(){
         if let roomId = self.roomModel?.roomId , roomId != "" {
             self.topIndicator?.startAnimating()
-            SparkSDK?.messages?.list(roomId: roomId,completionHandler: { (response: ServiceResponse<[MessageModel]>) in
+            SparkSDK?.messages.list(roomId: roomId, before: nil, max: 50, mentionedPeople: nil, queue: nil, completionHandler: { (response: ServiceResponse<[Message]>) in
                 self.topIndicator?.stopAnimating()
                 self.updateNavigationTitle()
                 switch response.result {
                 case .success(let value):
                     self.messageList.removeAll()
-                    for messageModel in value{
-                        let tempMessage = Message(messageModel: messageModel)
+                    for message in value{
+                        let tempMessage = BDSMessage(messageModel: message)
                         tempMessage?.localGroupId = self.roomModel?.localGroupId
                         tempMessage?.messageState = MessageState.received
                         self.messageList.insert(tempMessage!, at: 0)
@@ -122,8 +122,8 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
     }
     
     // MARK: - SparkSDK: post message | make call to a room
-    func sendMessage(text: String, _ assetList:[BDAssetModel]? = nil , _ mentionList:[Contact]? = nil){
-        let tempMessageModel = Message()
+    func sendMessage(text: String, _ assetList:[BDAssetModel]? = nil , _ mentionList:[Contact]? = nil, _ menpositions:[Range<Int>]){
+        let tempMessageModel = BDSMessage()
         tempMessageModel.roomId = self.roomModel?.roomId
         tempMessageModel.messageState = MessageState.willSend
         tempMessageModel.text = text
@@ -138,18 +138,19 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
         tempMessageModel.personEmail = EmailAddress.fromString(User.CurrentUser.email)
         tempMessageModel.localGroupId = self.roomModel?.localGroupId
         if let mentions = mentionList, mentions.count>0{
-            var mentionModels : [MessageMentionModel] = []
+            var mentionModels : [Mention] = []
             for mention in mentions{
                 if mention.name == "ALL"{
-                    mentionModels.append(MessageMentionModel.createGroupMentionItem())
+                    mentionModels.append(Mention.all)
                 }else{
-                    mentionModels.append(MessageMentionModel.createPeopleMentionItem(personId: mention.id))
+                    mentionModels.append(Mention.person(mention.id))
                 }
             }
             tempMessageModel.mentionList = mentionModels
+            tempMessageModel.text = self.processMentionString(contentStr: text, mentions: mentionModels, mentionsArr: menpositions)
         }
         if let models = assetList, models.count>0{
-            var files : [FileObjectModel] = []
+            var files : [LocalFile] = []
             tempMessageModel.fileNames = []
             let manager = PHImageManager.default()
             let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
@@ -170,14 +171,12 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
                     if let data = UIImageJPEGRepresentation(result!, 1.0){
                         do{
                             try data.write(to: URL(fileURLWithPath: destinationPath))
-                            let tempFile = FileObjectModel(name:name, localFileUrl: destinationPath)
-                            let thumbFile = ThumbNailImageModel(localFileUrl: destinationPath,width: Int((result?.size.width)!), height : Int((result?.size.height)!))
-                            tempFile.thumb = thumbFile
-                            tempFile.fileType = FileType.Image
-                            files.append(tempFile)
+                            let thumbFile = LocalFile.Thumbnail(path: destinationPath, mime: "image/png", width: Int((result?.size.width)!), height: Int((result?.size.height)!))
+                            let file = LocalFile(path: destinationPath, name: name, mime: "image/png", thumbnail: thumbFile, progressHandler: nil)
+                            files.append(file!)
                             tempMessageModel.fileNames?.append(name)
                             if loadedCount == models.count{
-                                tempMessageModel.files = files
+                                tempMessageModel.localFiles = files
                                 self.postMessage(message: tempMessageModel)
                             }
                         }catch let error as NSError{
@@ -191,7 +190,7 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
         }
         return
     }
-    func postMessage(message: Message){
+    func postMessage(message: BDSMessage){
         self.messageList.append(message)
         let indexPath = IndexPath(row: self.messageList.count-1, section: 0)
         self.messageTableView?.reloadData()
@@ -210,11 +209,11 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
     }
     
     // MARK: - SparkSDK: receive a new message
-    public func receiveNewMessage(message: MessageModel){
+    public func receiveNewMessage(message: Message){
         if let _ = self.messageList.filter({$0.messageId == message.id}).first{
             return
         }
-        let msgModel = Message(messageModel: message)
+        let msgModel = BDSMessage(messageModel: message)
         msgModel?.messageState = MessageState.received
         msgModel?.localGroupId = self.roomModel?.localGroupId
         if(msgModel?.text == nil){
@@ -279,8 +278,8 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
         let bottomViewWidth = Constants.Size.screenWidth
         if let group = User.CurrentUser[(self.roomModel?.localGroupId)!]{
             self.buddiesInputView = BuddiesInputView(frame: CGRect(x: 0, y: messageTableViewHeight, width: bottomViewWidth, height: 40) , tableView: self.messageTableView!, contacts: group.groupMembers)
-            self.buddiesInputView?.sendBtnClickBlock = { (textStr: String, assetList:[BDAssetModel]?, mentionList:[Contact]?) in
-                self.sendMessage(text: textStr, assetList, mentionList)
+            self.buddiesInputView?.sendBtnClickBlock = { (textStr: String, assetList:[BDAssetModel]?, mentionList:[Contact]?,mentionPositions: [Range<Int>]) in
+                self.sendMessage(text: textStr, assetList, mentionList,mentionPositions)
             }
             self.buddiesInputView?.videoCallBtnClickedBlock = {
                 self.makeCall(isVideo: true)
@@ -288,12 +287,11 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
             self.buddiesInputView?.audioCallBtnClickedBlock = {
                 self.makeCall(isVideo: false)
             }
-            
             self.view.addSubview(self.buddiesInputView!)
         }else{
             self.buddiesInputView = BuddiesInputView(frame: CGRect(x: 0, y: messageTableViewHeight, width: bottomViewWidth, height: 40) , tableView: self.messageTableView!)
-            self.buddiesInputView?.sendBtnClickBlock = { (textStr: String, assetList:[BDAssetModel]?, mentionList:[Contact]?) in
-                self.sendMessage(text: textStr, assetList, mentionList)
+            self.buddiesInputView?.sendBtnClickBlock = { (textStr: String, assetList:[BDAssetModel]?, mentionList:[Contact]?,mentionPositions: [Range<Int>]) in
+                self.sendMessage(text: textStr, assetList, mentionList,mentionPositions)
             }
             self.view.addSubview(self.buddiesInputView!)
         }
@@ -358,11 +356,19 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
         }else{
             var fileCount = 0
             var imageCount = 0
-            if(self.messageList[indexPath.row].files != nil){
-                imageCount = (self.messageList[indexPath.row].files?.filter({$0.fileType == FileType.Image}).count)!
-                fileCount = (self.messageList[indexPath.row].files?.filter({$0.fileType != FileType.Image}).count)!
+            if let localFiles = self.messageList[indexPath.row].localFiles {
+                imageCount = localFiles.filter({$0.mime.contains("image/")}).count
+                fileCount = localFiles.count - imageCount
             }
-            let cellHeight = MessageTableCell.getCellHeight(text: self.messageList[indexPath.row].text!, imageCount: imageCount, fileCount: fileCount)
+            else if let remoteFiles = self.messageList[indexPath.row].remoteFiles {
+                imageCount = remoteFiles.filter({($0.mimeType?.contains("image/"))!}).count
+                fileCount = remoteFiles.count - imageCount
+            }
+            var attrText : NSAttributedString = NSAttributedString.init(string: "")
+            if let text = self.messageList[indexPath.row].text, text.count > 0 {
+                 attrText = MessageParser.sharedInstance().translate(toAttributedString: text)
+            }
+            let cellHeight = MessageTableCell.getCellHeight(attrText: attrText, imageCount: imageCount, fileCount: fileCount)
             return cellHeight
         }
     }
@@ -420,6 +426,58 @@ class RoomViewController: BaseViewController,UITableViewDelegate,UITableViewData
 
     }
 
+    // MARK: - Markup string
+    private func processMentionString(contentStr: String?, mentions: [Mention],mentionsArr: [Range<Int>])-> String{
+        var result: String = ""
+        if let contentStr = contentStr{
+            var markedUpContent = contentStr
+            var mentionStringLength = 0
+            for index in 0..<mentionsArr.count{
+                let mention = mentions[index]
+                let mentionItem = mentionsArr[index]
+                let startPosition = (mentionItem.lowerBound) + mentionStringLength
+                let endPostion = (mentionItem.upperBound) + mentionStringLength
+                if markedUpContent.length < startPosition || markedUpContent.length < markedUpContent.startIndex.hashValue + endPostion{
+                    continue
+                }
+                let startIndex = markedUpContent.index(markedUpContent.startIndex, offsetBy: startPosition)
+                let endIndex = markedUpContent.index(markedUpContent.startIndex, offsetBy: endPostion)
+                let mentionContent = markedUpContent[startPosition..<endPostion]
+                switch mention{
+                case .all:
+                    let markupStr = markUpString(mentionContent: mentionContent, groupType: "All", mentionType: "groupMention")
+                    markedUpContent = markedUpContent.replacingCharacters(in: startIndex..<endIndex, with: markupStr)
+                    mentionStringLength += (markupStr.count - (mentionContent?.count)!)
+                    break
+                case .person(let personId):
+                    let markupStr = markUpString(mentionContent: mentionContent, mentionId: personId, mentionType: "person")
+                    markedUpContent = markedUpContent.replacingCharacters(in: startIndex..<endIndex, with: markupStr)
+                    mentionStringLength += (markupStr.count - (mentionContent?.count)!)
+                    break
+                }
+            }
+            result = markedUpContent
+        }
+        return result
+    }
+    private func markUpString(mentionContent: String?, mentionId: String? = nil, groupType: String?=nil, mentionType: String)->String{
+        var result = "<spark-mention"
+        if let mentionid = mentionId{
+            result = result + " data-object-id=" + mentionid
+        }
+        if let grouptype = groupType{
+            result = result + " data-group-type=" + grouptype
+        }
+        
+        result = result + " data-object-type=" + mentionType
+        result = result + ">"
+        if let content = mentionContent{
+            result = result + content
+        }
+        result = result + "</spark-mention>"
+        return result
+    }
+    
     // MARK: Other Functions
     private func updateNavigationTitle(){
         self.navigationTitleLabel?.text = self.roomModel?.title != nil ? self.roomModel?.title! : "No Name"

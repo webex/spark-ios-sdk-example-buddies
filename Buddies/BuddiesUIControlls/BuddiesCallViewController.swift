@@ -65,7 +65,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     private var backScrollView: UIScrollView?
     private var memberShipScrollView: UIScrollView?
     private var messageTableView: UITableView?
-    private var messageList: [Message] = []
+    private var messageList: [BDSMessage] = []
     private var bottomBackView: UIView?
     private var buddiesInputView : BuddiesInputView?
     private var isReceivingScreenShare: Bool = false
@@ -353,11 +353,11 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     }
 
     // MARK: - SparkSDK: receive a new message
-    public func receiveNewMessage(message: MessageModel){
+    public func receiveNewMessage(message: Message){
         if let _ = self.messageList.filter({$0.messageId == message.id}).first{
             return
         }
-        let msgModel = Message(messageModel: message)
+        let msgModel = BDSMessage(messageModel: message)
         msgModel?.messageState = MessageState.received
         msgModel?.localGroupId = self.roomModel?.localGroupId
         if(msgModel?.text == nil){
@@ -633,7 +633,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         let Y = Constants.Size.navHeight > 64 ? (Constants.Size.screenHeight - 188) : (Constants.Size.screenHeight - 154)
         self.buddiesInputView = BuddiesInputView(frame:  CGRect(x: bottomViewWidth, y:Y, width: bottomViewWidth, height: 40) , tableView: self.messageTableView!)
         self.buddiesInputView?.isInputViewInCall = true
-        self.buddiesInputView?.sendBtnClickBlock = { (textStr: String, assetList:[BDAssetModel]?, mentionList:[Contact]?) in
+        self.buddiesInputView?.sendBtnClickBlock = { (textStr: String, assetList:[BDAssetModel]?, mentionList:[Contact]?,mentionPositions: [Range<Int>]) in
             self.sendMessage(text: textStr, assetList, mentionList)
         }
         self.backScrollView?.addSubview(self.buddiesInputView!)
@@ -676,7 +676,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     // MARK: Page Logic Iplementation
     // MARK: - SparkSDK: post message current room
     func sendMessage(text: String, _ assetList:[BDAssetModel]? = nil , _ mentionList:[Contact]? = nil){
-        let tempMessageModel = Message()
+        let tempMessageModel = BDSMessage()
         tempMessageModel.roomId = self.roomModel?.roomId
         tempMessageModel.messageState = MessageState.willSend
         tempMessageModel.text = text
@@ -691,18 +691,18 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         tempMessageModel.personEmail = EmailAddress.fromString(User.CurrentUser.email)
         tempMessageModel.localGroupId = self.roomModel?.localGroupId
         if let mentions = mentionList, mentions.count>0{
-            var mentionModels : [MessageMentionModel] = []
+            var mentionModels : [Mention] = []
             for mention in mentions{
                 if mention.name == "ALL"{
-                    mentionModels.append(MessageMentionModel.createGroupMentionItem())
+                    mentionModels.append(Mention.all)
                 }else{
-                    mentionModels.append(MessageMentionModel.createPeopleMentionItem(personId: mention.id))
+                    mentionModels.append(Mention.person(mention.id))
                 }
             }
             tempMessageModel.mentionList = mentionModels
         }
         if let models = assetList, models.count>0{
-            var files : [FileObjectModel] = []
+            var files : [LocalFile] = []
             tempMessageModel.fileNames = []
             let manager = PHImageManager.default()
             let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
@@ -723,14 +723,12 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
                     if let data = UIImageJPEGRepresentation(result!, 1.0){
                         do{
                             try data.write(to: URL(fileURLWithPath: destinationPath))
-                            let tempFile = FileObjectModel(name:name, localFileUrl: destinationPath)
-                            let thumbFile = ThumbNailImageModel(localFileUrl: destinationPath,width: Int((result?.size.width)!), height : Int((result?.size.height)!))
-                            tempFile.thumb = thumbFile
-                            tempFile.fileType = FileType.Image
-                            files.append(tempFile)
+                            let thumbFile = LocalFile.Thumbnail(path: destinationPath, mime: "image/png", width: Int((result?.size.width)!), height: Int((result?.size.height)!))
+                            let tempFile = LocalFile(path: destinationPath, name: name, mime: "image/png", thumbnail: thumbFile, progressHandler: nil)
+                            files.append(tempFile!)
                             tempMessageModel.fileNames?.append(name)
                             if loadedCount == models.count{
-                                tempMessageModel.files = files
+                                tempMessageModel.localFiles = files
                                 self.postMessage(message: tempMessageModel)
                             }
                         }catch let error as NSError{
@@ -744,7 +742,7 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
         }
         return
     }
-    func postMessage(message: Message){
+    func postMessage(message: BDSMessage){
         self.messageList.append(message)
         let indexPath = IndexPath(row: self.messageList.count-1, section: 0)
         self.messageTableView?.reloadData()
@@ -771,11 +769,19 @@ class BuddiesCallViewController: UIViewController,UITableViewDelegate,UITableVie
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         var fileCount = 0
         var imageCount = 0
-        if(self.messageList[indexPath.row].files != nil){
-            imageCount = (self.messageList[indexPath.row].files?.filter({$0.fileType == FileType.Image}).count)!
-            fileCount = (self.messageList[indexPath.row].files?.filter({$0.fileType != FileType.Image}).count)!
+        if let localFiles = self.messageList[indexPath.row].localFiles {
+            imageCount = localFiles.filter({$0.mime.contains("image/")}).count
+            fileCount = localFiles.count - imageCount
         }
-        let cellHeight = MessageTableCell.getCellHeight(text: self.messageList[indexPath.row].text!, imageCount: imageCount, fileCount: fileCount)
+        else if let remoteFiles = self.messageList[indexPath.row].remoteFiles {
+            imageCount = remoteFiles.filter({($0.mimeType?.contains("image/"))!}).count
+            fileCount = remoteFiles.count - imageCount
+        }
+        var attrText : NSAttributedString = NSAttributedString.init(string: "")
+        if let text = self.messageList[indexPath.row].text, text.count > 0 {
+            attrText = MessageParser.sharedInstance().translate(toAttributedString: text)
+        }
+        let cellHeight = MessageTableCell.getCellHeight(attrText: attrText, imageCount: imageCount, fileCount: fileCount)
         return cellHeight
     }
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {

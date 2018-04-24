@@ -1,10 +1,22 @@
+// Copyright 2016-2017 Cisco Systems Inc
 //
-//  GuestLoginViewController.swift
-//  Buddies
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-//  Created by qucui on 2017/7/19.
-//  Copyright © 2017年 spark-ios-sdk. All rights reserved.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 import UIKit
 import SparkSDK
@@ -368,8 +380,14 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
     
     public func checkSparkRegister(){
         if(User.CurrentUser.phoneRegisterd){
-            SparkSDK?.messages?.onMessage = { message in
-                self.receiveNewMessage(message)
+            SparkSDK?.messages.onEvent = { event in
+                switch event{
+                case .messageReceived(let message):
+                    self.receiveNewMessage(message)
+                    break
+                case .messageDeleted(let _):
+                    break
+                }
             }
         }
     }
@@ -542,7 +560,7 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
     }
     
     
-    public func receiveNewMessage( _ messageModel: MessageModel){
+    public func receiveNewMessage( _ messageModel: Message){
         if messageModel.roomType == RoomType.direct{//GROUP
             if let roomVC = self.roomVC, let roomModel = self.roomVC?.roomModel{
                 if messageModel.personEmail == roomModel.localGroupId{

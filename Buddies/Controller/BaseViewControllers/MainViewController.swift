@@ -388,7 +388,7 @@ class MainViewController: UIViewController, UserOptionDelegate{
             SparkSDK?.phone.onIncoming = { call in
                 self.incomingCalls.append(call)
                 self.newCall = call
-                self.receiveIncomingCall(from: (call.from?.presonId)!)
+                self.receiveIncomingCall(from: (call.from?.personId)!)
             }
         }
     }

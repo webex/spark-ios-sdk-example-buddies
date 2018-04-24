@@ -36,7 +36,7 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
     private let textViewWidth = Int((Constants.Size.screenWidth - 140))
     private let textViewHeight = 36
     
-    public var sendBtnClickBlock : ((_ text : String, _ assetModels:[BDAssetModel]? , _ mentionList:[Contact]? )->())?
+    public var sendBtnClickBlock : ((_ text : String, _ assetModels:[BDAssetModel]? , _ mentionList:[Contact]?,_ mentionPositions: [Range<Int>])->())?
     public var audioCallBtnClickedBlock: (()->())?
     public var videoCallBtnClickedBlock: (()->())?
     
@@ -56,6 +56,7 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
     private var selectedAssetModels :[BDAssetModel] = []
     private var contactList: [Contact] = []
     private var mentionedList: [Contact] = []
+    private var mentionPositions : [Range<Int>] = [Range<Int>]()
     public var isInputViewInCall : Bool = false
     
     
@@ -110,13 +111,14 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
             return
         }
         if(self.sendBtnClickBlock != nil){
-            self.sendBtnClickBlock!((self.inputTextView?.text)!, self.selectedAssetModels, self.mentionedList)
+            self.sendBtnClickBlock!((self.inputTextView?.text)!, self.selectedAssetModels, self.mentionedList,self.mentionPositions)
             self.imageCollectionDismiss()
             self.selectedCollectionDismiss()
             self.mentionTabelDismiss()
             self.assetDict.removeAll()
             self.selectedAssetModels.removeAll()
             self.mentionedList.removeAll()
+            self.mentionPositions.removeAll()
 
         }
     }
@@ -201,7 +203,9 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
         case .notDetermined:
             PHPhotoLibrary.requestAuthorization({ (newStatus) in
                 if newStatus == PHAuthorizationStatus.authorized{
-                    self.setUpImageCollectionView()
+                    DispatchQueue.main.async {
+                        self.setUpImageCollectionView()
+                    }
                 }
             })
             break
@@ -579,6 +583,9 @@ class BuddiesInputView: UIView , UIImagePickerControllerDelegate , UINavigationC
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let selectedContact = self.contactList[indexPath.row]
         self.mentionedList.append(selectedContact)
+        let start = self.inputTextView?.text.count
+        let end = (self.inputTextView?.text.count)! + selectedContact.name.count
+        self.mentionPositions.append(start!..<(end+1))
         self.inputTextView?.text.append(" " + selectedContact.name + " ")
         self.mentionTabelDismiss()
         self.textViewClicked()

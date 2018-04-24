@@ -22,5 +22,8 @@
 #define Buddies_Bridging_Header_h
 
 #import <CommonCrypto/CommonCrypto.h>
-
+#import "MessageParser.h"
+#import "NSAttributedString+Extensions.h"
+#import "GTMNSMutableString+HTML.h"
+#import "RuntimeHelpers.h"
 #endif /* SparkBuddy_Bridging_Header_h */
