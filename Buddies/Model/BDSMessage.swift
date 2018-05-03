@@ -27,6 +27,7 @@ import SparkSDK
  */
 enum MessageState : Int{
     case idle
+    case sending
     case received
     case willSend
     case sendFailed

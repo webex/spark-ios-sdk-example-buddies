@@ -380,6 +380,7 @@ class MessageTableCell: UITableViewCell {
                 }
             }else{
                 DispatchQueue.global().async {
+                    self.message.messageState = MessageState.sending
                     SparkSDK?.messages.post(roomId: self.message.roomId!, text: (self.message.text!), mentions: self.message.mentionList, files: self.message.localFiles, queue: nil, completionHandler: { (response: ServiceResponse<Message>) in
                         self.messageIndicator?.stopAnimating()
                         switch response.result {
