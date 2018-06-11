@@ -360,7 +360,7 @@ class MessageTableCell: UITableViewCell {
             if(self.message.roomId == nil || self.message.roomId?.length == 0){
                 DispatchQueue.global().async {
                     let emailStr = User.CurrentUser.loginType == UserLoginType.User ? (self.message.toPersonEmail?.toString())! : self.message.localGroupId
-                    SparkSDK?.messages.post(personEmail: EmailAddress.fromString(emailStr!)!, text: self.message.text!, mentions: self.message.mentionList, files: self.message.localFiles, queue: nil, completionHandler: { (response: ServiceResponse<Message>) in
+                    SparkSDK?.messages.post(personEmail: EmailAddress.fromString(emailStr!)!, text: self.message.text!, files: self.message.localFiles, queue: nil, completionHandler: { (response: ServiceResponse<Message>) in
                         self.messageIndicator?.stopAnimating()
                         switch response.result {
                         case .success(let value):
