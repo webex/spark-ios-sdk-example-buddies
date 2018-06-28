@@ -1,12 +1,14 @@
 source 'https://github.com/CocoaPods/Specs.git'
 
-platform :ios, '9.0'
+platform :ios, '10.0'
 use_frameworks!
 
 target 'Buddies' do
-    pod 'SparkSDK', :git => 'https://github.com/ciscospark/spark-ios-sdk.git', :branch => ‘Messaging’
-    pod 'FontAwesome.swift','~> 1.2.0'
-    pod 'Cartography', '~>2.1.0'
-    pod 'SDWebImage', '~>4.1.2'
-    pod 'NVActivityIndicatorView', '~>4.0.0'
+    pod 'SparkSDK', :git => 'https://github.com/webex/spark-ios-sdk.git', :branch => ‘master’
+    pod 'FontAwesome.swift'
+    pod 'Cartography'
+    pod 'SDWebImage'
+    pod 'NVActivityIndicatorView'
+    pod 'GTMNSStringHTMLAdditions'
+    pod 'ObjectiveGumbo'
 end

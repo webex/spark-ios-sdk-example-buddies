@@ -165,7 +165,7 @@ class CreateGroupView: UIView, UITextFieldDelegate , UICollectionViewDelegate, U
             self.segmentControll?.addTarget(self, action: #selector(segmentClicked(sender:)), for: .valueChanged)
             self.segmentControll?.tintColor = Constants.Color.Theme.Main
             
-            let attr = NSDictionary(object: Constants.Font.InputBox.Button, forKey: NSFontAttributeName as NSCopying)
+            let attr = NSDictionary(object: Constants.Font.InputBox.Button, forKey: NSAttributedStringKey.font as NSCopying)
             self.segmentControll?.setTitleTextAttributes(attr as [NSObject : AnyObject] , for: .normal)
             
             self.segmentControll?.selectedSegmentIndex = 0

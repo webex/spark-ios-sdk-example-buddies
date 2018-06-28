@@ -1,10 +1,22 @@
+// Copyright 2016-2017 Cisco Systems Inc
 //
-//  GuestLoginViewController.swift
-//  Buddies
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
 //
-//  Created by qucui on 2017/7/19.
-//  Copyright © 2017年 spark-ios-sdk. All rights reserved.
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
 //
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
 
 import UIKit
 import SparkSDK
@@ -21,7 +33,7 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
     private var financialAdPTF: MKTextField?
     private var customerCareTF: MKTextField?
     private var addedEmailDict: Dictionary<String,String>?
-    
+    private var roomVC : RoomViewController?
     
     // MARK : Life Circle
     override func viewDidLoad() {
@@ -31,21 +43,15 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
             self.title = "Guest Experience"
         }
         super.viewDidLoad()
+        self.checkSparkRegister()
         self.updateBarItem()
         self.setUpSubViews()
-    }
-
-    override func viewWillAppear(_ animated: Bool) {
-        NotificationCenter.default.addObserver(self, selector: #selector(messageNotiReceived(noti:)), name: NSNotification.Name(rawValue: MessageReceptionNotificaton), object: nil)
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         NotificationCenter.default.removeObserver(self)
     }
-    
-    func messageNotiReceived(noti: Notification){
-        self.updateUnreadedLabels()
-    }
+
     
     // MARK: - UI Implementation
     private func updateBarItem() {
@@ -265,9 +271,9 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
         let paragraph = NSMutableParagraphStyle()
         paragraph.alignment = .right
         let attStringSaySomething1 = NSAttributedString.init(string: "Configuration",
-                                                             attributes: [NSFontAttributeName: Constants.Font.NavigationBar.Button, NSForegroundColorAttributeName:Constants.Color.Theme.Main,
-                                                                          NSUnderlineStyleAttributeName: NSUnderlineStyle.styleSingle.rawValue,
-                                                                          NSParagraphStyleAttributeName: paragraph])
+                                                             attributes: [NSAttributedStringKey.font: Constants.Font.NavigationBar.Button, NSAttributedStringKey.foregroundColor:Constants.Color.Theme.Main,
+                                                                          NSAttributedStringKey.underlineStyle: NSUnderlineStyle.styleSingle.rawValue,
+                                                                          NSAttributedStringKey.paragraphStyle: paragraph])
         
         settingBtn.setAttributedTitle(attStringSaySomething1, for: .normal)
         settingBtn.addTarget(self, action: #selector(setUpConfiguartionView), for: .touchUpInside)
@@ -301,6 +307,7 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
     
     
     // MARK: - SparkSDK: JWT Authentication Implementation
+    @objc
     func authenticateWithJWT(){
         
         self.addedEmailDict = Dictionary()
@@ -367,6 +374,20 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
             } else {
                 KTActivityIndicator.singleton.hide()
                 KTInputBox.alert(title: "Invalid Key")
+            }
+        }
+    }
+    
+    public func checkSparkRegister(){
+        if(User.CurrentUser.phoneRegisterd){
+            SparkSDK?.messages.onEvent = { event in
+                switch event{
+                case .messageReceived(let message):
+                    self.receiveNewMessage(message)
+                    break
+                case .messageDeleted(let _):
+                    break
+                }
             }
         }
     }
@@ -442,6 +463,7 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
     }
     
     // MARK: SparkSDK CALL/Message Function Implementation
+    @objc
     public func makeSparkCall(sender: UIButton){
         let index = sender.tag - 20000
         let group = User.CurrentUser[index]!
@@ -454,7 +476,7 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
         }
     }
 
-    public func makeSaprkMessage(sender: UIButton){
+    @objc public func makeSaprkMessage(sender: UIButton){
         let index = sender.tag - 20000
         let group = User.CurrentUser[index]!
         let localRoomName = group.groupName
@@ -465,19 +487,25 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
         group.unReadedCount = 0
         if let roomModel = User.CurrentUser.findLocalRoomWithId(localGroupId: localGroupId!){
             roomModel.title = localRoomName!
-            let roomVC = RoomViewController(room: roomModel)
-            self.navigationController?.pushViewController(roomVC, animated: true)
+            roomModel.roomMembers = [Contact]()
+            for contact in group.groupMembers{
+                roomModel.roomMembers?.append(contact)
+            }
+            self.roomVC = RoomViewController(room: roomModel)
+            self.navigationController?.pushViewController(self.roomVC!, animated: true)
         }else{
             if(group.groupType == .singleMember){
                 let createdRoom = RoomModel(roomId: "")
                 createdRoom.localGroupId = group.groupId!
                 createdRoom.title = localRoomName!
+                createdRoom.type = RoomType.direct
+                createdRoom.roomMembers = [Contact]()
                 for contact in group.groupMembers{
                     createdRoom.roomMembers?.append(contact)
                 }
                 User.CurrentUser.insertLocalRoom(room: createdRoom, atIndex: 0)
-                let roomVC = RoomViewController(room: createdRoom)
-                self.navigationController?.pushViewController(roomVC, animated: true)
+                self.roomVC = RoomViewController(room: createdRoom)
+                self.navigationController?.pushViewController(self.roomVC!, animated: true)
                 return
             }
             
@@ -487,6 +515,12 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
                 case .success(let value):
                     if let createdRoom = RoomModel(room: value){
                         createdRoom.localGroupId = localGroupId!
+                        group.groupId = createdRoom.roomId
+                        createdRoom.localGroupId = createdRoom.roomId
+                        createdRoom.title = localRoomName
+                        createdRoom.type = RoomType.group
+                        createdRoom.roomMembers = [Contact]()
+                        group.groupId = createdRoom.roomId
                         let threahGroup = DispatchGroup()
                         for contact in group.groupMembers{
                             DispatchQueue.global().async(group: threahGroup, execute: DispatchWorkItem(block: {
@@ -523,6 +557,23 @@ class GuestSettingViewController: BaseViewController,UITextViewDelegate,UITextFi
             })
         }
 
+    }
+    
+    
+    public func receiveNewMessage( _ messageModel: Message){
+        if messageModel.roomType == RoomType.direct{//GROUP
+            if let roomVC = self.roomVC, let roomModel = self.roomVC?.roomModel{
+                if messageModel.personEmail == roomModel.localGroupId{
+                    roomVC.receiveNewMessage(message: messageModel)
+                    return
+                }
+            }else{
+                if let group = User.CurrentUser.getSingleGroupWithContactEmail(email: messageModel.personEmail!){
+                    group.unReadedCount += 1
+                    self.updateUnreadedLabels()
+                }
+            }
+        }
     }
     
     override func didReceiveMemoryWarning() {

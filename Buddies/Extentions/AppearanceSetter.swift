@@ -24,10 +24,10 @@ class AppearanceSetter {
     
     class func setup() {
         UINavigationBar.appearance().titleTextAttributes = [
-            NSFontAttributeName: Constants.Font.NavigationBar.Title
+            NSAttributedStringKey.font: Constants.Font.NavigationBar.Title
         ]
-        UIBarButtonItem.appearance().setTitleTextAttributes([NSFontAttributeName: Constants.Font.NavigationBar.Title], for: .normal);
-        UIBarButtonItem.appearance().setTitleTextAttributes([NSFontAttributeName: Constants.Font.NavigationBar.Button], for: .highlighted);
+        UIBarButtonItem.appearance().setTitleTextAttributes([NSAttributedStringKey.font: Constants.Font.NavigationBar.Title], for: .normal);
+        UIBarButtonItem.appearance().setTitleTextAttributes([NSAttributedStringKey.font: Constants.Font.NavigationBar.Button], for: .highlighted);
     }
     
 }
@@ -38,7 +38,7 @@ extension UINavigationBar {
         self.barStyle = .black;
         self.barTintColor = Constants.Color.Theme.Main;
         self.tintColor = UIColor.white;
-        self.titleTextAttributes = [NSForegroundColorAttributeName:UIColor.white, NSFontAttributeName:Constants.Font.NavigationBar.Title];
+        self.titleTextAttributes = [NSAttributedStringKey.foregroundColor:UIColor.white, NSAttributedStringKey.font:Constants.Font.NavigationBar.Title];
         self.setTitleVerticalPositionAdjustment(-2, for: .default)
         self.isTranslucent = false
     }

@@ -22,21 +22,14 @@ import UIKit
 
 class Constants {
     
-    static let ClientId = "C416dd36dd57b536a35816978e4f063a98849d285ca191f5566a32c0f0c3481ab"
-    static let ClientSecret = ProcessInfo().environment["CLIENTSECRET"] ?? "bc851e0f4d4bd62c020a45de08e374101910200d43096f32d14b9e08164adac7"
-    ///Scopes define the level of access that your integration requires
+    ///Buddies Client Secret
+    static let ClientId = "C267d2f778fcd82715da1d89afa7762a2e8b3b5a36cd5c45b9d5bcc076f99991a"
+
+    static let ClientSecret = "b132058fa39dd4999c62813501e486e396caba1c7c598b9aaae33a629c42a4ce"
+
+    static let RedirectUrl = "sweetie-demo://redirect"
+
     static let Scope = "spark:all"
-    ///Uri is that a user will be redirected to when completing an OAuth grant flow
-    static let RedirectUrl = "KitchenSink://response"
-    
-//    ///Buddies Client Secret
-//    static let ClientId = "C267d2f778fcd82715da1d89afa7762a2e8b3b5a36cd5c45b9d5bcc076f99991a"
-//
-//    static let ClientSecret = "b132058fa39dd4999c62813501e486e396caba1c7c598b9aaae33a629c42a4ce"
-//
-//    static let RedirectUrl = "sweetie-demo://redirect"
-//
-//    static let Scope = "spark:all"
     
     class Size {
         static let screenFrame = UIScreen.main.bounds
@@ -164,7 +157,7 @@ class Constants {
         
         class Theme {
             
-            static let Main = UIColor(colorLiteralRed: 0.18, green: 0.67, blue: 0.84, alpha: 1)
+            static let Main = UIColor.init(red: 0.18, green: 0.67, blue: 0.84, alpha: 1)
             
             static let LightMain = UIColor.MKColor.LightBlue.P200
             
@@ -199,6 +192,25 @@ class Constants {
             static let ItemTitle = UIColor(white: 0.3, alpha: 1)
             
             static let ItemDetailTitle = UIColor(white: 0.6, alpha: 1)
+            
+        }
+        
+        class Message{
+            static let PersonMention = UIColor.MKColor.Blue.P900
+            
+            static let GroupMention = UIColor.MKColor.LightGreen.P900
+            
+            static let Link = UIColor.MKColor.Blue.P600
+            
+            static let Highlight = UIColor.MKColor.Blue.P600
+            
+            static let Warning = UIColor(hexString: "BF3237")!
+            
+            static let MineBack = UIColor.MKColor.Blue.P300
+            
+            static let OtherBack = UIColor.init(red: 0.18, green: 0.67, blue: 0.84, alpha: 1)
+            
+            static let Text = UIColor.MKColor.Grey.P900
             
         }
     }

@@ -40,7 +40,7 @@ extension UIColor {
         }
         let range = hex.range(of:"(^[0-9A-Fa-f]{6}$)|(^[0-9A-Fa-f]{3}$)", options:.regularExpression)
         if (range != nil) {
-            if hex.characters.count == 3 {
+            if hex.length == 3 {
                 let redHex   = hex.substring(to: 1)
                 let greenHex = hex.substring(with: 1..<2);
                 let blueHex  = hex.substring(from: 2)

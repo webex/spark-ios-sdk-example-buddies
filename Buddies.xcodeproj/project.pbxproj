@@ -8,7 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		10259AC42061FE3B00843619 /* RoomModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10259AC22061FE3B00843619 /* RoomModel.swift */; };
-		10259AC52061FE3B00843619 /* Message.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10259AC32061FE3B00843619 /* Message.swift */; };
+		10259AC52061FE3B00843619 /* BDSMessage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10259AC32061FE3B00843619 /* BDSMessage.swift */; };
+		10372ED2208D6DBA000B9300 /* MessageParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 10372ECA208D6DB9000B9300 /* MessageParser.m */; };
+		10372ED3208D6DBA000B9300 /* NSAttributedString+Extensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 10372ECF208D6DB9000B9300 /* NSAttributedString+Extensions.m */; };
+		10372ED4208D6DBA000B9300 /* RuntimeHelpers.m in Sources */ = {isa = PBXBuildFile; fileRef = 10372ED0208D6DB9000B9300 /* RuntimeHelpers.m */; };
+		10372ED5208D6DBA000B9300 /* GTMNSMutableString+HTML.m in Sources */ = {isa = PBXBuildFile; fileRef = 10372ED1208D6DBA000B9300 /* GTMNSMutableString+HTML.m */; };
+		10372ED7208D7B14000B9300 /* NSAttributeString+Extention.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10372ED6208D7B14000B9300 /* NSAttributeString+Extention.swift */; };
 		104DF1481F466F2D00BC1CB5 /* GuestSettingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 104DF1471F466F2D00BC1CB5 /* GuestSettingViewController.swift */; };
 		105B4508206B617300F4599A /* AssetCollectionCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 105B4507206B617300F4599A /* AssetCollectionCell.swift */; };
 		105B450A206CACA300F4599A /* BDAssetModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 105B4509206CACA300F4599A /* BDAssetModel.swift */; };
@@ -59,7 +64,17 @@
 
 /* Begin PBXFileReference section */
 		10259AC22061FE3B00843619 /* RoomModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RoomModel.swift; sourceTree = "<group>"; };
-		10259AC32061FE3B00843619 /* Message.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Message.swift; sourceTree = "<group>"; };
+		10259AC32061FE3B00843619 /* BDSMessage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BDSMessage.swift; sourceTree = "<group>"; };
+		10372EC9208D6DB8000B9300 /* MessageParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MessageParser.h; sourceTree = "<group>"; };
+		10372ECA208D6DB9000B9300 /* MessageParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MessageParser.m; sourceTree = "<group>"; };
+		10372ECB208D6DB9000B9300 /* NSAttributedString+Extensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSAttributedString+Extensions.h"; sourceTree = "<group>"; };
+		10372ECC208D6DB9000B9300 /* RuntimeHelpers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RuntimeHelpers.h; sourceTree = "<group>"; };
+		10372ECD208D6DB9000B9300 /* GTMDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GTMDefines.h; sourceTree = "<group>"; };
+		10372ECE208D6DB9000B9300 /* GTMNSMutableString+HTML.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "GTMNSMutableString+HTML.h"; sourceTree = "<group>"; };
+		10372ECF208D6DB9000B9300 /* NSAttributedString+Extensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSAttributedString+Extensions.m"; sourceTree = "<group>"; };
+		10372ED0208D6DB9000B9300 /* RuntimeHelpers.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RuntimeHelpers.m; sourceTree = "<group>"; };
+		10372ED1208D6DBA000B9300 /* GTMNSMutableString+HTML.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "GTMNSMutableString+HTML.m"; sourceTree = "<group>"; };
+		10372ED6208D7B14000B9300 /* NSAttributeString+Extention.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NSAttributeString+Extention.swift"; sourceTree = "<group>"; };
 		104DF1471F466F2D00BC1CB5 /* GuestSettingViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GuestSettingViewController.swift; sourceTree = "<group>"; };
 		105B4507206B617300F4599A /* AssetCollectionCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetCollectionCell.swift; sourceTree = "<group>"; };
 		105B4509206CACA300F4599A /* BDAssetModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BDAssetModel.swift; sourceTree = "<group>"; };
@@ -130,6 +145,23 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		100150BB2086025E00B6EB81 /* TextMarkDown */ = {
+			isa = PBXGroup;
+			children = (
+				10372ECD208D6DB9000B9300 /* GTMDefines.h */,
+				10372ECE208D6DB9000B9300 /* GTMNSMutableString+HTML.h */,
+				10372ED1208D6DBA000B9300 /* GTMNSMutableString+HTML.m */,
+				10372EC9208D6DB8000B9300 /* MessageParser.h */,
+				10372ECA208D6DB9000B9300 /* MessageParser.m */,
+				10372ECB208D6DB9000B9300 /* NSAttributedString+Extensions.h */,
+				10372ECF208D6DB9000B9300 /* NSAttributedString+Extensions.m */,
+				10372ECC208D6DB9000B9300 /* RuntimeHelpers.h */,
+				10372ED0208D6DB9000B9300 /* RuntimeHelpers.m */,
+				10372ED6208D7B14000B9300 /* NSAttributeString+Extention.swift */,
+			);
+			path = TextMarkDown;
+			sourceTree = "<group>";
+		};
 		105BB1D01F413B61005B740F /* BuddiesUIControlls */ = {
 			isa = PBXGroup;
 			children = (
@@ -212,6 +244,7 @@
 		10DBFF0F1F3BE35A00209DEC /* Extentions */ = {
 			isa = PBXGroup;
 			children = (
+				100150BB2086025E00B6EB81 /* TextMarkDown */,
 				10DBFF101F3BE35A00209DEC /* AppearanceSetter.swift */,
 				10DBFF111F3BE35A00209DEC /* Array+Ext.swift */,
 				10DBFF121F3BE35A00209DEC /* CGPoint+Ext.swift */,
@@ -231,7 +264,7 @@
 		10DBFF1D1F3BE35A00209DEC /* Model */ = {
 			isa = PBXGroup;
 			children = (
-				10259AC32061FE3B00843619 /* Message.swift */,
+				10259AC32061FE3B00843619 /* BDSMessage.swift */,
 				10259AC22061FE3B00843619 /* RoomModel.swift */,
 				10DBFF1E1F3BE35A00209DEC /* Contact.swift */,
 				10DBFF1F1F3BE35A00209DEC /* Group.swift */,
@@ -319,7 +352,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0830;
-				LastUpgradeCheck = 0830;
+				LastUpgradeCheck = 0920;
 				ORGANIZATIONNAME = "spark-ios-sdk";
 				TargetAttributes = {
 					206281F51ED1782C007E28F9 = {
@@ -398,12 +431,15 @@
 				"${BUILT_PRODUCTS_DIR}/AlamofireObjectMapper/AlamofireObjectMapper.framework",
 				"${BUILT_PRODUCTS_DIR}/Cartography/Cartography.framework",
 				"${BUILT_PRODUCTS_DIR}/FontAwesome.swift/FontAwesome_swift.framework",
+				"${BUILT_PRODUCTS_DIR}/GTMNSStringHTMLAdditions/GTMNSStringHTMLAdditions.framework",
 				"${BUILT_PRODUCTS_DIR}/KeychainAccess/KeychainAccess.framework",
 				"${BUILT_PRODUCTS_DIR}/NVActivityIndicatorView/NVActivityIndicatorView.framework",
 				"${BUILT_PRODUCTS_DIR}/ObjectMapper/ObjectMapper.framework",
+				"${BUILT_PRODUCTS_DIR}/ObjectiveGumbo/ObjectiveGumbo.framework",
 				"${BUILT_PRODUCTS_DIR}/SDWebImage/SDWebImage.framework",
-				"${PODS_ROOT}/SparkSDK/Vendors/SparkSDKEncryptionKit.framework",
-				"${PODS_ROOT}/SparkSDK/Vendors/Wme.framework",
+				"${PODS_ROOT}/SparkSDK/Frameworks/Sbu.framework",
+				"${PODS_ROOT}/SparkSDK/Frameworks/Seu.framework",
+				"${PODS_ROOT}/SparkSDK/Frameworks/Wme.framework",
 				"${BUILT_PRODUCTS_DIR}/SparkSDK/SparkSDK.framework",
 				"${BUILT_PRODUCTS_DIR}/Starscream/Starscream.framework",
 				"${BUILT_PRODUCTS_DIR}/SwiftyJSON/SwiftyJSON.framework",
@@ -414,11 +450,14 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/AlamofireObjectMapper.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Cartography.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/FontAwesome_swift.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/GTMNSStringHTMLAdditions.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/KeychainAccess.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/NVActivityIndicatorView.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ObjectMapper.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ObjectiveGumbo.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SDWebImage.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SparkSDKEncryptionKit.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Sbu.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Seu.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Wme.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SparkSDK.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Starscream.framework",
@@ -467,6 +506,7 @@
 				10DBFF3B1F3BE35A00209DEC /* RoomListViewController.swift in Sources */,
 				10DBFF531F3BE35A00209DEC /* CreateRoomView.swift in Sources */,
 				10DBFF461F3BE35A00209DEC /* UIFont+Ext.swift in Sources */,
+				10372ED2208D6DBA000B9300 /* MessageParser.m in Sources */,
 				105BB1D41F413B61005B740F /* BuddiesCallViewController.swift in Sources */,
 				10DBFF451F3BE35A00209DEC /* UIColor+Ext.swift in Sources */,
 				10DBFF471F3BE35A00209DEC /* UIImage+Ext.swift in Sources */,
@@ -474,6 +514,7 @@
 				10DBFF431F3BE35A00209DEC /* MKTextField.swift in Sources */,
 				10DBFF371F3BE35A00209DEC /* ContactViewController.swift in Sources */,
 				105BB1D31F413B61005B740F /* BuddiesInputView.swift in Sources */,
+				10372ED3208D6DBA000B9300 /* NSAttributedString+Extensions.m in Sources */,
 				10DBFF491F3BE35A00209DEC /* UIView+Ext.swift in Sources */,
 				10DBFF391F3BE35A00209DEC /* MainViewController.swift in Sources */,
 				10DBFF3C1F3BE35A00209DEC /* RoomViewController.swift in Sources */,
@@ -481,16 +522,19 @@
 				10DBFF401F3BE35A00209DEC /* Array+Ext.swift in Sources */,
 				10DBFF481F3BE35A00209DEC /* UILabel+Ext.swift in Sources */,
 				10DBFF4D1F3BE35A00209DEC /* Group.swift in Sources */,
+				10372ED4208D6DBA000B9300 /* RuntimeHelpers.m in Sources */,
 				10DBFF411F3BE35A00209DEC /* CGPoint+Ext.swift in Sources */,
 				10DBFF4A1F3BE35A00209DEC /* UIWindow+Ext.swift in Sources */,
+				10372ED7208D7B14000B9300 /* NSAttributeString+Extention.swift in Sources */,
 				105B450C206CE84B00F4599A /* SelectedAssetCollectionCell.swift in Sources */,
 				10DBFF561F3BE35A00209DEC /* MessageTableCell.swift in Sources */,
+				10372ED5208D6DBA000B9300 /* GTMNSMutableString+HTML.m in Sources */,
 				10DBFF521F3BE35A00209DEC /* CreateGroupView.swift in Sources */,
 				10DBFF5C1F3BE35A00209DEC /* UserOptionView.swift in Sources */,
 				10DBFF5B1F3BE35A00209DEC /* TeamListTableCell.swift in Sources */,
 				10DBFF3D1F3BE35A00209DEC /* TeamListViewController.swift in Sources */,
 				10DBFF441F3BE35A00209DEC /* String+Ext.swift in Sources */,
-				10259AC52061FE3B00843619 /* Message.swift in Sources */,
+				10259AC52061FE3B00843619 /* BDSMessage.swift in Sources */,
 				105B450A206CACA300F4599A /* BDAssetModel.swift in Sources */,
 				10DBFF421F3BE35A00209DEC /* KTActivityIndicator.swift in Sources */,
 				10259AC42061FE3B00843619 /* RoomModel.swift in Sources */,
@@ -529,7 +573,9 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
@@ -537,7 +583,11 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -580,7 +630,9 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
@@ -588,7 +640,11 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -632,7 +688,7 @@
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/Buddies/Buddies-Bridging-Header.h";
-				SWIFT_VERSION = 3.0;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Debug;
 		};
@@ -654,7 +710,7 @@
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/Buddies/Buddies-Bridging-Header.h";
-				SWIFT_VERSION = 3.0;
+				SWIFT_VERSION = 4.0;
 			};
 			name = Release;
 		};
