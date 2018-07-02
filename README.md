@@ -1,6 +1,6 @@
 # Buddies
 
-Buddies is a Demo Application that shows how to build a production App with Spark SDK. It is developed for providing reference codes and widgets to developers who wants to develop real time communication(call and messaging) applications with "Saprk-SDK".
+Buddies is a Demo Application that shows how to build a production App with Spark SDK. It is developed for providing reference codes and widgets to developers who wants to develop real time communication(call and messaging) applications with "Spark-SDK".
 
 ## Screenshots 
 <ul>
